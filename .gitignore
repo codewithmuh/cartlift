@@ -1,0 +1,83 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+
+# production
+*.tsbuildinfo
+
+# env
+.env
+.env*.local
+.env.development
+.env.production
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# testing
+coverage/
+.nyc_output/
+
+# vercel
+.vercel
+
+# python / django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# django
+*.sqlite3
+*.sqlite3-journal
+api/staticfiles/
+api/media/
+api/db.sqleite3
+local_settings.py
+
+# virtualenv
+venv/
+.venv/
+env/
+ENV/
+
+# docker
+*.pid
+
+# editors / os
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# claude / agents
+.claude/
