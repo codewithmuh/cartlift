@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import JsonLd from "./JsonLd";
 import RegisterSW from "./RegisterSW";
 
 export const metadata: Metadata = {
@@ -57,9 +58,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <JsonLd />
       </head>
       <body>
-        {children}
+        <a href="#main" className="skip-link">skip to content</a>
+        <div id="main">{children}</div>
         <RegisterSW />
       </body>
     </html>

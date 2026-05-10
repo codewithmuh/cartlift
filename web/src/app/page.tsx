@@ -1,5 +1,26 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import URLAuditInput from "./URLAuditInput";
+
+export const metadata: Metadata = {
+  title: "Convert more visitors. Open-source CRO daemon.",
+  description:
+    "Bandit is the open-source CRO daemon. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs A/B tests via Thompson sampling. MIT licensed.",
+  alternates: { canonical: "/" },
+  keywords: [
+    "open source CRO",
+    "A/B testing",
+    "conversion rate optimization",
+    "SEO audit",
+    "Google Merchant Center audit",
+    "compliance audit",
+    "multi-armed bandit",
+    "self-hosted CRO",
+    "Sherpa alternative",
+    "VWO alternative",
+    "Optimizely alternative",
+  ],
+};
 
 export default function HomePage() {
   return (
@@ -615,8 +636,14 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="foot-bottom">
-                <span>© 2026 Bandit Labs, Inc. · made in a terminal</span>
-                <span style={{ color: "var(--lime)" }}>● daemon · v0.1.0</span>
+                <span>© 2026 Bandit Labs · made in a terminal</span>
+                <span style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                  <Link href="/privacy" style={{ color: "var(--ink-3)" }}>privacy</Link>
+                  <span style={{ color: "var(--ink-5)" }}>·</span>
+                  <Link href="/terms" style={{ color: "var(--ink-3)" }}>terms</Link>
+                  <span style={{ color: "var(--ink-5)" }}>·</span>
+                  <span style={{ color: "var(--lime)" }}>● daemon · v0.1.0</span>
+                </span>
               </div>
             </div>
           </div>

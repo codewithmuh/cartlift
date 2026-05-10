@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import SigninForm from "./SigninForm";
 
-export const metadata = { title: "sign in — bandit" };
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to your Bandit dashboard. Run audits, manage experiments, ship winning variants.",
+  alternates: { canonical: "/signin" },
+  robots: { index: false, follow: true },
+};
 
 export default function SigninPage() {
   return (

@@ -1,0 +1,18 @@
+/* TEAM */
+  Built by: Muhammad Rashid Daha (codewithmuh)
+  Site:     https://www.youtube.com/@codewithmuh
+  GitHub:   https://github.com/codewithmuh
+  X:        https://x.com/codewithmuh
+  Location: building in public
+
+/* THANKS */
+  Sherpa  — for proving the CRO daemon idea works
+  Vercel  — for the hosting
+  Anthropic — for Claude
+
+/* STACK */
+  Frontend:  Next.js 15 · React 19 · TypeScript · single globals.css
+  Backend:   Django 5.1 · DRF · SimpleJWT · Postgres 16
+  AI:        Claude (audit pipeline + variant drafts)
+  Infra:     Docker Compose · Vercel
+  License:   MIT

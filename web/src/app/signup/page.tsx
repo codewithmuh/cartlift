@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import SignupForm from "./SignupForm";
 import SignupCanvas from "./SignupCanvas";
 
-export const metadata = { title: "get a demo — bandit" };
+export const metadata: Metadata = {
+  title: "Spin up the daemon — free audit",
+  description:
+    "Create your Bandit account in 30 seconds. No card. First three audits + first experiment on us. CRO · SEO · compliance · Google Merchant.",
+  alternates: { canonical: "/signup" },
+  robots: { index: true, follow: true },
+};
 
 export default function SignupPage() {
   return (
