@@ -1,0 +1,74 @@
+name: bug
+description: something is broken
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        thanks for filing this. one bug, one issue — keeps the thread useful.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: what happened
+      description: what did you do, what did you expect, what did you get instead?
+      placeholder: |
+        i ran `docker compose up -d --build` and the api container exits with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: steps to reproduce
+      description: the exact commands or clicks. assume i know nothing about your machine.
+      placeholder: |
+        1. cp .env.example .env
+        2. docker compose up -d --build
+        3. open http://localhost:3050/signup
+        4. submit form → blank page
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: logs / errors
+      description: paste the full error. `docker compose logs api --tail 100` for backend, browser console for frontend.
+      render: shell
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: where is it
+      multiple: true
+      options:
+        - web (Next.js)
+        - api (Django)
+        - audit pipeline (runner.py)
+        - variant generator
+        - bandit allocator
+        - snippet (/s/<token>.js)
+        - docker / setup
+        - other
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: environment
+      description: os · node version · docker version · browser if relevant
+      placeholder: macOS 15.1 · node 20.18 · docker 27.3 · chrome 130
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: before submitting
+      options:
+        - label: i searched existing issues and this isn't a duplicate
+          required: true
+        - label: i'm on the latest `main` branch
+          required: true

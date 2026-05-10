@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: security disclosure
+    url: mailto:codewithmuh@gmail.com
+    about: do not open a public issue for security bugs. email codewithmuh@gmail.com instead.
+  - name: questions / discussion
+    url: https://www.youtube.com/@codewithmuh
+    about: general questions, ideas, or just saying hi → drop a comment on the channel.

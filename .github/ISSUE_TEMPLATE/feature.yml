@@ -1,0 +1,75 @@
+name: feature
+description: propose a new capability
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        open this **before** you write code. 5 minutes of scope alignment
+        saves 5 days of rewrites.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: what problem does this solve
+      description: who is this for, what are they trying to do today, why does it suck?
+      placeholder: |
+        right now you can't filter audits by site. once a user has 50+ audits
+        across 5 sites, the list view becomes useless.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: proposed solution
+      description: how should it work? sketches, api shapes, or rough ui notes welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: alternatives considered
+      description: what else did you think about and why isn't it the right call?
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: where does it live
+      multiple: true
+      options:
+        - web (Next.js)
+        - api (Django)
+        - audit pipeline (runner.py)
+        - variant generator
+        - bandit allocator
+        - snippet (/s/<token>.js)
+        - new module
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: rough scope
+      options:
+        - small (a few hours)
+        - medium (a day or two)
+        - large (a week+)
+        - i don't know yet
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: before submitting
+      options:
+        - label: i read CONTRIBUTING.md, including the "what we probably won't merge" list
+          required: true
+        - label: this isn't already on the README roadmap
+          required: true
+        - label: i'm willing to discuss scope and trade-offs before writing code
+          required: true
