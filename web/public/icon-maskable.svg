@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Maskable: full bleed, safe zone is the central 80% -->
+  <rect width="512" height="512" fill="#0c0c0c"/>
+  <rect x="78" y="78" width="356" height="356" rx="48" fill="none" stroke="#4ade80" stroke-width="8"/>
+  <text x="256" y="328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="240" font-weight="700" fill="#4ade80" text-anchor="middle" letter-spacing="-8">B</text>
+</svg>
