@@ -51,11 +51,12 @@ No CSS framework, no state library, no ORM other than Django's. One repo, three 
 git clone https://github.com/codewithmuh/bandit.git
 cd bandit
 
-# 1. backend + database
+# 1. backend + database (Django + Postgres in Docker)
 cp .env.example .env                 # optional: paste ANTHROPIC_API_KEY
 docker compose up -d --build         # api :8050 · postgres :5450
 
-# 2. frontend
+# 2. frontend (Next.js on the host)
+cd web
 npm install
 npm run dev                          # http://localhost:3050
 ```
@@ -79,21 +80,27 @@ Sign up at [`/signup`](http://localhost:3050/signup), paste a URL into the audit
 
 ## Repo layout
 
+Standard monorepo split: `web/` (Next.js) + `api/` (Django) + `docker-compose.yml` at the root.
+
 ```
 bandit/
-├── src/                   # Next.js — marketing + dashboard
-│   ├── app/
-│   │   ├── page.tsx           # landing page (hero · audits grid · how · dashboard mock · POV · OS manifesto · FAQ)
-│   │   ├── signin/  signup/   # JWT auth (signup is audit-aware via ?audit=URL)
-│   │   └── dashboard/         # AuditBar header + 4 routes:
-│   │       ├── audits/        #   /audits + tabs + auto-run
-│   │       ├── audits/[id]/   #   per-audit report (downloadable .md / .json / pdf)
-│   │       ├── sites/         #   register sites + copy install snippet
-│   │       ├── experiments/   #   list + drill-down + approve/kill/pause
-│   │       └── settings/      #   account
-│   └── lib/api.ts             # typed fetch wrapper · JWT in localStorage
+├── web/                       # Next.js 15 — marketing + dashboard (port 3050)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── page.tsx           # landing (hero · audits grid · how · dashboard mock · POV · OS manifesto · FAQ)
+│   │   │   ├── signin/  signup/   # JWT auth (signup is audit-aware via ?audit=URL)
+│   │   │   └── dashboard/         # AuditBar header + 4 routes:
+│   │   │       ├── audits/        #   list + tabs + auto-run
+│   │   │       ├── audits/[id]/   #   per-audit report (download .md / .json / pdf)
+│   │   │       ├── sites/         #   register sites + copy install snippet
+│   │   │       ├── experiments/   #   list + drill-down + approve/kill/pause
+│   │   │       └── settings/      #   account
+│   │   └── lib/api.ts             # typed fetch wrapper · JWT in localStorage
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── next.config.mjs
 │
-├── api/                   # Django + DRF
+├── api/                       # Django 5.1 + DRF (port 8050)
 │   ├── conf/                  # settings · urls · wsgi
 │   ├── accounts/              # custom email-login user · JWT issuance
 │   ├── sites/                 # customer sites + bnd_xxx snippet tokens
@@ -102,9 +109,11 @@ bandit/
 │   ├── audits/                # Audit model + runner.py + generator.py
 │   └── snippet/               # public, no-auth: /s/<token>.js + /active + /expose + /convert
 │
-├── docker-compose.yml     # postgres + api
-├── CLAUDE.md              # full architecture notes for Claude Code sessions
-└── README.md
+├── docker-compose.yml         # postgres + api
+├── .env.example
+├── README.md
+├── CLAUDE.md                  # architecture notes for Claude Code sessions
+└── LICENSE                    # MIT
 ```
 
 ---

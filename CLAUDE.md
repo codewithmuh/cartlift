@@ -6,39 +6,44 @@
 
 ## Repo layout
 
+Standard monorepo: `web/` (Next.js) + `api/` (Django) + `docker-compose.yml` at the root.
+
 ```
 bandit/
-├── src/                       # Next.js 15 + React 19 (port 3050)
-│   ├── app/
-│   │   ├── page.tsx                # Marketing landing
-│   │   ├── globals.css             # SINGLE source of truth — light theme + lime accent
-│   │   ├── layout.tsx
-│   │   ├── URLAuditInput.tsx       # Hero URL input that pushes to /signup?audit=URL
-│   │   ├── signin/                 # JWT signin
-│   │   ├── signup/                 # Audit-aware signup (?audit=URL → preview + claim)
-│   │   │   ├── SignupCanvas.tsx        # Left panel: "your audit is queued" preview
-│   │   │   └── SignupForm.tsx
-│   │   └── dashboard/              # Authenticated workspace
-│   │       ├── layout.tsx              # Sidebar + sticky AuditBar wrapper
-│   │       ├── Sidebar.tsx             # Loads /api/auth/me; redirects to /signin on 401
-│   │       ├── AuditBar.tsx            # Sticky URL+type bar at top of EVERY dashboard page
-│   │       ├── page.tsx                # Overview
-│   │       ├── audits/
-│   │       │   ├── page.tsx → AuditsView.tsx     # Tabs (cro/seo/compliance/gmc) + auto-run from ?run=
-│   │       │   └── [id]/                          # Per-audit detail
-│   │       │       ├── page.tsx
-│   │       │       └── AuditDetailView.tsx       # Short-form (CRO/SEO) OR long-form Yoonlab-style report
-│   │       │                                     # + [→ generate variants] + .md/.json/PDF download
-│   │       ├── sites/                  # Register sites + copy install snippet (script + convert)
-│   │       ├── experiments/
-│   │       │   ├── page.tsx → ExperimentsView.tsx   # List with status pills
-│   │       │   └── [id]/                            # Drill-down
-│   │       │       ├── page.tsx
-│   │       │       └── ExperimentDetailView.tsx     # Variant table + traffic-weight bars
-│   │       │                                        # + approve/pause/kill + 8s polling
-│   │       └── settings/               # Edit company name
-│   └── lib/api.ts                  # Typed fetch wrapper. JWT in localStorage.
-│                                   # Endpoints: auth · sites · audits · experiments
+├── web/                       # Next.js 15 + React 19 (port 3050)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── page.tsx                # Marketing landing
+│   │   │   ├── globals.css             # SINGLE source of truth — light theme + lime accent
+│   │   │   ├── layout.tsx
+│   │   │   ├── URLAuditInput.tsx       # Hero URL input that pushes to /signup?audit=URL
+│   │   │   ├── signin/                 # JWT signin
+│   │   │   ├── signup/                 # Audit-aware signup (?audit=URL → preview + claim)
+│   │   │   │   ├── SignupCanvas.tsx        # Left panel: "your audit is queued" preview
+│   │   │   │   └── SignupForm.tsx
+│   │   │   └── dashboard/              # Authenticated workspace
+│   │   │       ├── layout.tsx              # Sidebar + sticky AuditBar wrapper
+│   │   │       ├── Sidebar.tsx             # Loads /api/auth/me; redirects to /signin on 401
+│   │   │       ├── AuditBar.tsx            # Sticky URL+type bar at top of EVERY dashboard page
+│   │   │       ├── page.tsx                # Overview
+│   │   │       ├── audits/
+│   │   │       │   ├── page.tsx → AuditsView.tsx     # Tabs + auto-run from ?run=
+│   │   │       │   └── [id]/                          # Per-audit detail
+│   │   │       │       ├── page.tsx
+│   │   │       │       └── AuditDetailView.tsx       # Short-form (CRO/SEO) or long-form (Compliance/GMC)
+│   │   │       │                                     # + [→ generate variants] + .md/.json/PDF download
+│   │   │       ├── sites/                  # Register sites + copy install snippet
+│   │   │       ├── experiments/
+│   │   │       │   ├── page.tsx → ExperimentsView.tsx   # List with status pills
+│   │   │       │   └── [id]/                            # Drill-down
+│   │   │       │       ├── page.tsx
+│   │   │       │       └── ExperimentDetailView.tsx     # Variant table + weight bars
+│   │   │       │                                        # + approve/pause/kill + 8s polling
+│   │   │       └── settings/               # Edit company name
+│   │   └── lib/api.ts                  # Typed fetch wrapper. JWT in localStorage.
+│   ├── package.json                    # next dev/build scripts
+│   ├── tsconfig.json
+│   └── next.config.mjs
 │
 ├── api/                       # Django 5.1 + DRF + JWT (port 8050)
 │   ├── manage.py
@@ -60,18 +65,19 @@ bandit/
 ├── docker-compose.yml         # postgres:16-alpine (port 5450) + django api (port 8050)
 ├── .env.example               # All env vars (incl. ANTHROPIC_API_KEY for the audit pipeline)
 ├── README.md                  # Public-facing
-├── LICENSE                    # MIT
-└── package.json               # Next.js dev/build scripts
+├── CLAUDE.md                  # this file
+└── LICENSE                    # MIT
 ```
 
 ## Dev quickstart
 
 ```bash
-# 1. Backend + database
+# 1. Backend + database (Django + Postgres in Docker)
 cp .env.example .env       # optional: paste ANTHROPIC_API_KEY for real audits
 docker compose up -d --build
 
-# 2. Frontend
+# 2. Frontend (Next.js on the host)
+cd web
 npm install
 npm run dev                # → http://localhost:3050
 ```
