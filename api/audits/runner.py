@@ -16,7 +16,9 @@ from __future__ import annotations
 import json
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
+from urllib.parse import urljoin, urlparse
 
 import requests
 from django.conf import settings
@@ -24,15 +26,12 @@ from django.conf import settings
 
 # ---- shared fetch -----------------------------------------------------------
 
-def _fetch_text(url: str, timeout: float = 10.0) -> tuple[str, str]:
-    headers = {
-        "User-Agent": "BanditAudit/0.1 (+https://bandit.dev/audit)",
-        "Accept": "text/html,application/xhtml+xml",
-    }
-    r = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
-    r.raise_for_status()
-    html = r.text
+_UA = "BanditAudit/0.1 (+https://bandit.dev/audit)"
+_HEADERS = {"User-Agent": _UA, "Accept": "text/html,application/xhtml+xml"}
 
+
+def _strip_html(html: str, max_chars: int) -> tuple[str, str]:
+    """Return (title, visible_text) — drops scripts/styles/comments/tags."""
     title_match = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
     title = (title_match.group(1).strip() if title_match else "")[:255]
 
@@ -41,7 +40,172 @@ def _fetch_text(url: str, timeout: float = 10.0) -> tuple[str, str]:
     cleaned = re.sub(r"<!--.*?-->", " ", cleaned, flags=re.DOTALL)
     text = re.sub(r"<[^>]+>", " ", cleaned)
     text = re.sub(r"\s+", " ", text).strip()
-    return title, text[:8000]
+    return title, text[:max_chars]
+
+
+def _fetch_text(url: str, timeout: float = 10.0, max_chars: int = 8000) -> tuple[str, str]:
+    r = requests.get(url, headers=_HEADERS, timeout=timeout, allow_redirects=True)
+    r.raise_for_status()
+    return _strip_html(r.text, max_chars)
+
+
+def _fetch_html(url: str, timeout: float = 8.0) -> str | None:
+    try:
+        r = requests.get(url, headers=_HEADERS, timeout=timeout, allow_redirects=True)
+        r.raise_for_status()
+        return r.text
+    except Exception:  # noqa: BLE001
+        return None
+
+
+# ---- multi-page site crawler (used by compliance + gmc) --------------------
+
+# label → list of substrings to match against (url + anchor text), case-insensitive.
+# First-match wins, scanned in declaration order so e.g. "refund-policy" classifies
+# as "returns" (not "shipping" — even on combined "shipping & returns" pages).
+_PAGE_PATTERNS: list[tuple[str, list[str]]] = [
+    ("returns",  ["return", "refund", "exchange"]),
+    ("shipping", ["shipping", "delivery", "envio"]),
+    ("privacy",  ["privacy", "privacidad"]),
+    ("terms",    ["terms", "tos", "conditions", "legal", "terminos"]),
+    ("about",    ["about", "nosotros", "our-story"]),
+    ("contact",  ["contact", "contacto", "support page"]),
+    ("faq",      ["faq", "preguntas", "/help", "help center", "questions"]),
+    ("checkout", ["/checkout", "pagar"]),
+    ("cart",     ["/cart", "/carrito"]),
+    ("product",  ["/products/", "/product/", "/p/", "/shop/", "/item/"]),
+]
+
+# Hostname must match (or be a subdomain of) the homepage host. No off-site links.
+def _same_host(base: str, candidate: str) -> bool:
+    bh = urlparse(base).hostname or ""
+    ch = urlparse(candidate).hostname or ""
+    return bool(bh) and (ch == bh or ch.endswith("." + bh) or bh.endswith("." + ch))
+
+
+def _extract_links(html: str, base_url: str) -> list[tuple[str, str]]:
+    """Return [(absolute_url, anchor_text), ...] — internal links only."""
+    out: list[tuple[str, str]] = []
+    for m in re.finditer(
+        r'<a\b[^>]*?href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',
+        html,
+        flags=re.IGNORECASE | re.DOTALL,
+    ):
+        href = m.group(1).strip()
+        if href.startswith(("#", "mailto:", "tel:", "javascript:")):
+            continue
+        anchor = re.sub(r"<[^>]+>", " ", m.group(2))
+        anchor = re.sub(r"\s+", " ", anchor).strip().lower()
+        absolute = urljoin(base_url, href)
+        if not absolute.startswith(("http://", "https://")):
+            continue
+        if not _same_host(base_url, absolute):
+            continue
+        out.append((absolute, anchor))
+    return out
+
+
+def _classify_pages(links: list[tuple[str, str]]) -> dict[str, str]:
+    """Pick at most one URL per category. First match (in DOM order) wins."""
+    picks: dict[str, str] = {}
+    for absolute, anchor in links:
+        haystack = (absolute.lower() + " " + anchor)
+        for label, needles in _PAGE_PATTERNS:
+            if label in picks:
+                continue
+            if any(n in haystack for n in needles):
+                picks[label] = absolute
+                break
+    return picks
+
+
+def _crawl_site(url: str, max_pages: int = 8) -> dict[str, dict[str, str]]:
+    """Fetch homepage + key policy pages concurrently.
+
+    Returns { label: {"url": ..., "title": ..., "text": ..., "labels": [...]} }
+    with at least a "homepage" entry. Per-page text capped so the whole bundle
+    stays ~24K chars (fits with room for instructions in the prompt).
+
+    URLs are de-duplicated: if multiple labels point at the same URL (common
+    on combined "shipping & returns" pages), the URL is fetched once and the
+    matching labels are recorded in `labels`. The first matching label is
+    kept as the primary key for ordering.
+    """
+    html = _fetch_html(url, timeout=10.0)
+    if html is None:
+        title, text = _fetch_text(url)
+        return {"homepage": {"url": url, "title": title, "text": text, "labels": ["homepage"]}}
+
+    homepage_title, homepage_text = _strip_html(html, max_chars=4500)
+    pages: dict[str, dict[str, str]] = {
+        "homepage": {
+            "url": url, "title": homepage_title, "text": homepage_text,
+            "labels": ["homepage"],
+        },
+    }
+    seen_urls = {url}
+
+    picks = _classify_pages(_extract_links(html, url))
+    # Group labels by URL — fetch each URL once.
+    url_to_labels: dict[str, list[str]] = {}
+    for label, _ in _PAGE_PATTERNS:
+        if label not in picks:
+            continue
+        link = picks[label]
+        if link in seen_urls:
+            # Already covered (likely the homepage or an earlier label's URL).
+            for existing_page in pages.values():
+                if existing_page["url"] == link:
+                    existing_page["labels"].append(label)
+                    break
+            continue
+        url_to_labels.setdefault(link, []).append(label)
+
+    unique = list(url_to_labels.items())[: max_pages - 1]
+    if not unique:
+        return pages
+
+    def _fetch_one(link: str, labels: list[str]) -> tuple[list[str], str, dict[str, str] | None]:
+        sub = _fetch_html(link, timeout=6.0)
+        if sub is None:
+            return labels, link, None
+        sub_title, sub_text = _strip_html(sub, max_chars=2500)
+        return labels, link, {"url": link, "title": sub_title, "text": sub_text}
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = [pool.submit(_fetch_one, lnk, lbls) for lnk, lbls in unique]
+        for fut in as_completed(futures):
+            labels, link, page = fut.result()
+            if page:
+                page["labels"] = labels
+                pages[labels[0]] = page  # primary label keys the dict
+                seen_urls.add(link)
+    return pages
+
+
+def _format_bundle(pages: dict[str, dict[str, str]]) -> str:
+    """Render the crawled pages as a labeled block for the prompt.
+
+    A page covering multiple roles (e.g. combined Shipping + Returns) is
+    emitted once with all matching labels in the header so Claude knows to
+    apply both lenses to the same content.
+    """
+    parts: list[str] = []
+    order = ["homepage"] + [lbl for lbl, _ in _PAGE_PATTERNS]
+    emitted: set[str] = set()  # primary keys we've already rendered
+    for label in order:
+        if label not in pages or label in emitted:
+            continue
+        page = pages[label]
+        emitted.add(label)
+        labels = page.get("labels") or [label]
+        header = ", ".join(l.upper() for l in labels)
+        parts.append(
+            f"=== [{header}] {page['url']}\n"
+            f"TITLE: {page.get('title', '')}\n"
+            f"{page.get('text', '')}"
+        )
+    return "\n\n".join(parts)
 
 
 def _claude(prompt: str, max_tokens: int = 1500) -> str | None:
@@ -105,21 +269,30 @@ _SEO_CANNED = [
 ]
 
 _COMPLIANCE_REPORT = {
+    # 22-item website-trust checklist matching Yoon Lab / KeyCommerce format.
     "checks": [
         {"item": "Physical address", "ok": True},
         {"item": "Business details", "ok": True},
-        {"item": "Customer service phone", "ok": True},
+        {"item": "Customer service telephone number", "ok": True},
         {"item": "Contact email address", "ok": False, "note": "Email differs across pages."},
-        {"item": "Contact form / page", "ok": False, "note": "No on-page form."},
-        {"item": "Business hours + response time", "ok": True},
+        {"item": "Contact form or contact page", "ok": False, "note": "No on-page form."},
+        {"item": "Business hours and response time", "ok": True},
         {"item": "Shipping page", "ok": False, "note": "Shipping rates differ between site and checkout."},
-        {"item": "Secure checkout", "ok": True},
-        {"item": "Returns + Refunds page", "ok": False, "note": "Three pages contradict each other."},
-        {"item": "Terms & Conditions page", "ok": True},
-        {"item": "Privacy Policy page", "ok": True},
-        {"item": "Visible payment methods", "ok": False, "note": "No payment icons in footer or PDP."},
-        {"item": "About Us page", "ok": True},
-        {"item": "Footer trust signals", "ok": False, "note": "Footer lacks payment + policy links."},
+        {"item": "Secure checkout page", "ok": True},
+        {"item": "Returns and refunds page", "ok": False, "note": "Three pages contradict each other."},
+        {"item": "Terms & conditions page", "ok": True},
+        {"item": "Privacy policy page", "ok": True},
+        {"item": "Payment methods", "ok": False, "note": "No payment icons in footer or PDP."},
+        {"item": "Product availability", "ok": True},
+        {"item": "Product pricing", "ok": True},
+        {"item": "Product content", "ok": True},
+        {"item": "Product reviews", "ok": True},
+        {"item": "Product pages", "ok": True},
+        {"item": "Website homepage structure", "ok": True},
+        {"item": "Website's performance", "ok": True},
+        {"item": "About us page", "ok": True},
+        {"item": "Checkout page", "ok": False, "note": "Forced sign-in before order summary."},
+        {"item": "Footer", "ok": False, "note": "Footer lacks payment + policy links."},
     ],
     "sections": [
         {
@@ -241,24 +414,51 @@ _PROMPT_SEO = (
     "predicted_lift_pct (always 0)."
 )
 _PROMPT_COMPLIANCE = (
-    "You are a senior ecommerce compliance auditor. The site below may need to pass "
-    "trust + transparency checks (privacy, terms, returns, shipping, contact). "
+    "You are a senior ecommerce compliance auditor. Below is a labeled bundle of "
+    "pages we crawled from the merchant's site (HOMEPAGE plus any of: RETURNS, "
+    "SHIPPING, PRIVACY, TERMS, ABOUT, CONTACT, FAQ, CHECKOUT, CART, PRODUCT). "
+    "Compare across pages — your most valuable findings are CROSS-PAGE "
+    "CONTRADICTIONS (e.g. one return rule on RETURNS, a different one on TERMS; "
+    "one email in the footer, another inside PRIVACY; one shipping rate on "
+    "SHIPPING, a different one on PRODUCT). "
+    "Also check the CART/CHECKOUT pages for forced sign-in / required-account "
+    "creation language — Google strictly prohibits gathering personal data "
+    "before the buyer sees full costs. "
     "Return ONLY valid JSON with: "
     "{\"checks\": [{\"item\": str, \"ok\": bool, \"note\"?: str}], "
     "\"sections\": [{\"title\": str, \"finding\": str, \"recommendations\": [str]}], "
     "\"conclusion\": [str]}. "
-    "5-7 sections covering the most impactful policy + trust issues."
+    "5-7 sections covering the most impactful policy + trust issues. "
+    "Quote the contradicting language directly from each page when relevant."
 )
 _PROMPT_GMC = (
-    "You are a Google Merchant Center suspension specialist. Audit the site below for "
-    "GMC + Shopping eligibility (misrepresentation, prohibited content, pricing alignment, "
-    "checkout transparency, return + refund policy, contact info, payment disclosure). "
+    "You are a Google Merchant Center suspension specialist. Below is a labeled "
+    "bundle of pages we crawled from the merchant's site (HOMEPAGE plus any of: "
+    "RETURNS, SHIPPING, PRIVACY, TERMS, ABOUT, CONTACT, FAQ, CHECKOUT, CART, "
+    "PRODUCT). Audit for GMC + Shopping eligibility: misrepresentation, "
+    "prohibited content, pricing alignment, checkout transparency, return + "
+    "refund policy, contact info, payment disclosure. "
+    "Read EVERY labeled section. Your highest-signal findings come from "
+    "CROSS-PAGE COMPARISON — Google suspends merchants for inconsistencies, not "
+    "for any single page. Specifically check: "
+    "(a) returns/refunds language must match across RETURNS, TERMS, ABOUT, FAQ; "
+    "(b) shipping rates must match across SHIPPING, CART, CHECKOUT, PRODUCT; "
+    "(c) the contact email/phone must be identical across HOMEPAGE footer, "
+    "CONTACT, PRIVACY, TERMS; "
+    "(d) CART/CHECKOUT must NOT force sign-in or account creation before the "
+    "buyer sees full costs (look for 'create an account', 'sign in to checkout', "
+    "'register' in the cart/checkout text); "
+    "(e) accepted payment methods must be visibly disclosed on HOMEPAGE footer "
+    "AND PRODUCT pages. "
     "Return ONLY valid JSON with: "
     "{\"messages\": [{\"type\": \"Error|Warning|Notification\", \"description\": str, \"affected\": int}], "
     "\"areas\": [{\"title\": str, \"finding\": str, \"recommendations\": [str]}], "
     "\"checks\": [{\"item\": str, \"ok\": bool, \"note\"?: str}], "
     "\"sections\": [{\"title\": str, \"finding\": str, \"recommendations\": [str]}], "
-    "\"conclusion\": [str]}."
+    "\"conclusion\": [str]}. "
+    "Quote the contradicting language directly from each page when relevant. "
+    "5-7 sections is right; each section's `finding` should name which pages "
+    "you compared (e.g. \"Returns page says X, Terms page says Y\")."
 )
 
 
@@ -279,18 +479,44 @@ def _parse_json(text: str, expect_array: bool) -> Any | None:
 
 def run_audit(url: str, audit_type: str = "cro") -> dict[str, Any]:
     started = time.monotonic()
-    try:
-        title, text = _fetch_text(url)
-    except Exception as exc:  # noqa: BLE001
-        return {
-            "status": "failed",
-            "error": f"could not fetch URL: {exc}",
-            "elapsed_ms": int((time.monotonic() - started) * 1000),
-            "audit_type": audit_type,
-        }
-
     findings: list[dict[str, Any]] = []
     report: dict[str, Any] = {}
+    title = ""
+
+    # compliance + gmc need cross-page comparison; cro + seo only need the homepage.
+    multi_page = audit_type in {"compliance", "gmc"}
+
+    if multi_page:
+        try:
+            pages = _crawl_site(url)
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "status": "failed",
+                "error": f"could not fetch URL: {exc}",
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "audit_type": audit_type,
+            }
+        title = pages.get("homepage", {}).get("title", "")
+        bundle = _format_bundle(pages)
+        crawled = [
+            {
+                "label": label,
+                "labels": page.get("labels") or [label],
+                "url": page["url"],
+                "title": page.get("title", ""),
+            }
+            for label, page in pages.items()
+        ]
+    else:
+        try:
+            title, text = _fetch_text(url)
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "status": "failed",
+                "error": f"could not fetch URL: {exc}",
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "audit_type": audit_type,
+            }
 
     if audit_type == "seo":
         prompt = f"{_PROMPT_SEO}\n\nURL: {url}\nTITLE: {title}\nVISIBLE TEXT (truncated):\n{text}"
@@ -298,16 +524,18 @@ def run_audit(url: str, audit_type: str = "cro") -> dict[str, Any]:
         parsed = _parse_json(ai, expect_array=True) if ai else None
         findings = parsed if isinstance(parsed, list) else _SEO_CANNED
     elif audit_type == "compliance":
-        prompt = f"{_PROMPT_COMPLIANCE}\n\nURL: {url}\nTITLE: {title}\nVISIBLE TEXT (truncated):\n{text}"
-        ai = _claude(prompt, max_tokens=3500)
-        parsed = _parse_json(ai, expect_array=False) if ai else None
-        report = parsed if isinstance(parsed, dict) else dict(_COMPLIANCE_REPORT)
-        findings = []  # compliance is long-form only
-    elif audit_type == "gmc":
-        prompt = f"{_PROMPT_GMC}\n\nURL: {url}\nTITLE: {title}\nVISIBLE TEXT (truncated):\n{text}"
+        prompt = f"{_PROMPT_COMPLIANCE}\n\nROOT URL: {url}\n\n{bundle}"
         ai = _claude(prompt, max_tokens=4000)
         parsed = _parse_json(ai, expect_array=False) if ai else None
+        report = parsed if isinstance(parsed, dict) else dict(_COMPLIANCE_REPORT)
+        report["crawled"] = crawled
+        findings = []  # compliance is long-form only
+    elif audit_type == "gmc":
+        prompt = f"{_PROMPT_GMC}\n\nROOT URL: {url}\n\n{bundle}"
+        ai = _claude(prompt, max_tokens=4500)
+        parsed = _parse_json(ai, expect_array=False) if ai else None
         report = parsed if isinstance(parsed, dict) else dict(_GMC_REPORT)
+        report["crawled"] = crawled
         findings = []
     else:  # cro (default)
         prompt = f"{_PROMPT_CRO}\n\nURL: {url}\nTITLE: {title}\nVISIBLE TEXT (truncated):\n{text}"

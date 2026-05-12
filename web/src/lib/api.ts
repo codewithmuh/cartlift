@@ -117,12 +117,20 @@ export type ReportCheck = { item: string; ok: boolean; note?: string };
 export type ReportSection = { title: string; finding: string; recommendations: string[] };
 export type ReportMessage = { type: string; description: string; affected: number };
 
+export type CrawledPage = {
+  label: string;
+  labels?: string[];
+  url: string;
+  title: string;
+};
+
 export type AuditReport = {
   checks?: ReportCheck[];
   sections?: ReportSection[];
   conclusion?: string[];
   messages?: ReportMessage[];
   areas?: ReportSection[];
+  crawled?: CrawledPage[];
 };
 
 export type Audit = {

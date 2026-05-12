@@ -27,6 +27,15 @@ function buildMarkdown(a: Audit): string {
     lines.push(a.summary);
     lines.push("");
   }
+  if (a.report?.crawled?.length) {
+    lines.push("## Pages we read");
+    lines.push("");
+    for (const p of a.report.crawled) {
+      const labels = (p.labels ?? [p.label]).join(" + ");
+      lines.push(`- **[${labels}]** ${p.url}`);
+    }
+    lines.push("");
+  }
   if (a.findings?.length) {
     lines.push("## Findings");
     lines.push("");
@@ -199,7 +208,7 @@ export default function AuditDetailView({ id }: { id: number }) {
             ⤓ download .json
           </button>
           <button className="icon-btn" onClick={() => window.print()}>
-            ⤓ print / pdf
+            ⤓ download pdf
           </button>
           <Link href={`/dashboard/audits?type=${a.audit_type}`} className="icon-btn">
             ← back
@@ -267,57 +276,138 @@ export default function AuditDetailView({ id }: { id: number }) {
         </>
       )}
 
-      {/* Long-form view (Compliance + GMC) — Yoonlab-style report */}
+      {/* Long-form view (Compliance + GMC) — KeyCommerce-style report */}
       {isLongForm && (
         <article className="report-doc">
-          <h2>{TYPE_LABEL[a.audit_type]} audit</h2>
-          <p>
+          {/* ---- Print-only cover page ---- */}
+          <section className="print-cover">
+            <div className="cover-brand">
+              <span className="cover-mark">B</span>
+              <span className="cover-name">bandit</span>
+            </div>
+            <h1 className="cover-title">
+              {a.audit_type === "gmc"
+                ? "Google Merchant Center & Site Compliance Audit"
+                : "Site Compliance Audit"}
+            </h1>
+            <div className="cover-details">
+              <h4>Audit details:</h4>
+              <p><strong>Audit date:</strong> {new Date(a.created_at).toLocaleDateString()}</p>
+              <p><strong>Store URL:</strong> <a href={a.url}>{a.url}</a></p>
+              <p><strong>Elapsed:</strong> {(a.elapsed_ms / 1000).toFixed(1)}s · pages crawled: {a.report?.crawled?.length ?? 1}</p>
+            </div>
+            <div className="cover-about">
+              <h4>About the audit</h4>
+              <p>
+                {a.audit_type === "gmc"
+                  ? "Our Google Merchant Center Audit covers the Google Merchant Center account, your product feed, and your website. We review these three areas carefully to uncover the cause of your suspension or account issues. Sometimes there's just one leading cause, but often the reason involves many factors."
+                  : "Our compliance audit reviews your storefront against the trust + transparency standards expected by major commerce platforms (Google Shopping, Meta, payment processors). Each section ends with concrete actions you can apply this week."}
+              </p>
+              <p>
+                Under each section, we'll provide our results and recommendations to improve the error
+                and give your store the best chance of fixing your account issues.
+              </p>
+              <p>
+                Please keep in mind that the recommendations are to offer you the BEST chance of fixing the
+                disapproval. We recommend you fix every issue and go above and beyond to improve your website.
+                Best practices and platform policies guide our recommendations, insights, and findings.
+              </p>
+              <p>
+                <strong>In this audit, we cover {a.audit_type === "gmc" ? "2" : "1"} key area{a.audit_type === "gmc" ? "s" : ""} of your account:</strong>
+              </p>
+              <ol>
+                {a.audit_type === "gmc" && <li>Google Merchant Center Diagnostics</li>}
+                <li>Website and Content</li>
+              </ol>
+            </div>
+          </section>
+
+          {/* ---- Screen-only summary header ---- */}
+          <h2 className="no-print">{TYPE_LABEL[a.audit_type]} audit</h2>
+          <p className="no-print">
             <strong>Audit date:</strong> {new Date(a.created_at).toLocaleDateString()}<br />
             <strong>Store URL:</strong> {a.url}<br />
             <strong>Elapsed:</strong> {(a.elapsed_ms / 1000).toFixed(1)}s
           </p>
 
-          <h3>About this audit</h3>
-          <p>
+          <h3 className="no-print">About this audit</h3>
+          <p className="no-print">
             {a.audit_type === "gmc"
               ? "Our Google Merchant Center audit covers the GMC account, your product feed, and your website. We review these three areas to uncover the cause of your suspension or account issues. Sometimes there's one leading cause, but often the reason involves many factors."
               : "Our compliance audit reviews your site against the trust + transparency standards expected by major platforms (Google Shopping, Meta, payment processors). Each section ends with concrete actions you can apply this week."}
           </p>
-          <p>
+          <p className="no-print">
             Recommendations are written for the BEST chance of fixing your issue. Even if other
             sites get away with these gaps today, there is no guarantee they always will.
           </p>
 
+          {a.report?.crawled?.length ? (
+            <div className="no-print">
+              <h3>Pages we read</h3>
+              <p style={{ color: "var(--ink-3)", fontSize: 13 }}>
+                The auditor crawled the homepage and key policy pages, then compared them
+                for cross-page contradictions. These are the {a.report.crawled.length} pages it inspected:
+              </p>
+              <ul style={{ fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.85 }}>
+                {a.report.crawled.map((p) => (
+                  <li key={p.url}>
+                    <span style={{ color: "var(--lime)", fontWeight: 600 }}>
+                      [{(p.labels ?? [p.label]).join(" + ")}]
+                    </span>{" "}
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ink-2)" }}>
+                      {p.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {a.report?.messages?.length ? (
-            <>
-              <h2>A. Diagnostics</h2>
-              <p>Messages found in the diagnostics tab:</p>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "var(--mono)", fontSize: 13, marginTop: 8 }}>
+            <section className="page-break-before">
+              <h2>A. Google Merchant Center Audit</h2>
+              <p>
+                We have accessed the Google Merchant Center account and reviewed the
+                diagnostics tab to identify any errors that appear. In this section, we can
+                find 3 types of messages from Google:
+              </p>
+              <ul>
+                <li>Notifications (mostly suggestions from Google to improve your data feed)</li>
+                <li>Warnings (these are not a sign of product disapproval, but something to fix if possible)</li>
+                <li>Errors (these need to be fixed right away)</li>
+              </ul>
+              <p>Messages found in the Diagnostics tab:</p>
+              <p>Messages found in the Diagnostics tab:</p>
+              <table className="diagnostics-table">
                 <thead>
-                  <tr style={{ background: "var(--bg-1)" }}>
-                    <th style={{ padding: "10px 12px", textAlign: "left", borderBottom: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 11, letterSpacing: "0.06em" }}>Type</th>
-                    <th style={{ padding: "10px 12px", textAlign: "left", borderBottom: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 11, letterSpacing: "0.06em" }}>Description</th>
-                    <th style={{ padding: "10px 12px", textAlign: "right", borderBottom: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 11, letterSpacing: "0.06em" }}>Affected</th>
+                  <tr>
+                    <th>Type of Message</th>
+                    <th>Description</th>
+                    <th style={{ textAlign: "right" }}>Affected Items</th>
                   </tr>
                 </thead>
                 <tbody>
                   {a.report.messages.map((m, i) => (
                     <tr key={i}>
-                      <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--hairline)", color: m.type === "Error" ? "var(--red)" : m.type === "Warning" ? "var(--warn)" : "var(--ink-2)", fontWeight: 600 }}>{m.type}</td>
-                      <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--hairline)", color: "var(--ink)" }}>{m.description}</td>
-                      <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--hairline)", color: "var(--ink)", textAlign: "right" }}>{m.affected}</td>
+                      <td className={`msg-type msg-${m.type.toLowerCase()}`}>{m.type}</td>
+                      <td>{m.description}</td>
+                      <td style={{ textAlign: "right" }}>{m.affected}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </>
+            </section>
           ) : null}
 
           {a.report?.areas?.length ? (
-            <>
-              <h2>{a.report?.messages?.length ? "Outcomes — account review" : "Outcomes"}</h2>
+            <section>
+              <h2>{a.report?.messages?.length ? "Outcomes of the Google Merchant Center Audit" : "Outcomes"}</h2>
+              <p>
+                In this section of the audit, we analyse the key contributing factors that
+                may be resulting in your account&apos;s suspension.
+              </p>
               {a.report.areas.map((s, i) => (
-                <div key={i}>
+                <div key={i} className="report-section">
                   <h3>{i + 1}. {s.title}</h3>
                   <div className="findings-block">
                     <h4>findings</h4>
@@ -333,37 +423,43 @@ export default function AuditDetailView({ id }: { id: number }) {
                   ) : null}
                 </div>
               ))}
-            </>
+            </section>
           ) : null}
 
           {a.report?.checks?.length ? (
-            <>
+            <section className="page-break-before">
               <h2>{a.report?.areas?.length ? "B. Website audit" : "Compliance checks"}</h2>
               <p>
-                Website-related issues cause the most platform suspensions. We reviewed the
-                site to determine whether the warnings could be linked to missing information,
-                inaccurate representation, poor user experience, or other potential trust issues.
+                Website-related issues cause a large number of Google Merchant Center
+                suspensions. We reviewed the website to determine whether the warnings
+                flagged by Google could be linked to missing information, inaccurate
+                representation, poor user experience, or other potential issues that may
+                impact trust and compliance.
               </p>
               <p>Here are the results for your store:</p>
-              <div style={{ marginTop: 12 }}>
-                {a.report.checks.map((c, i) => (
-                  <div key={i} className="check-row">
-                    <span style={{ color: "var(--ink-2)" }}>
-                      {c.item}
-                      {c.note && <span style={{ color: "var(--ink-3)", marginLeft: 8 }}>— {c.note}</span>}
-                    </span>
-                    <span className={c.ok ? "ok" : "bad"}>{c.ok ? "✓" : "✗ see below"}</span>
-                  </div>
-                ))}
-              </div>
-            </>
+              <table className="check-table">
+                <tbody>
+                  {a.report.checks.map((c, i) => (
+                    <tr key={i}>
+                      <td>
+                        {c.item}
+                        {c.note && !c.ok && (
+                          <span className="check-note"> — See "Results" below for details</span>
+                        )}
+                      </td>
+                      <td className={c.ok ? "ok" : "bad"}>{c.ok ? "✓" : "✗"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
           ) : null}
 
           {a.report?.sections?.length ? (
-            <>
-              <h2>{a.report?.checks?.length ? "Outcomes — website review" : "Detailed findings"}</h2>
+            <section className="page-break-before">
+              <h2>{a.report?.checks?.length ? "Outcomes of the Website Audit" : "Detailed findings"}</h2>
               {a.report.sections.map((s, i) => (
-                <div key={i}>
+                <div key={i} className="report-section">
                   <h3>{i + 1}. {s.title}</h3>
                   <div className="findings-block">
                     <h4>findings</h4>
@@ -379,20 +475,20 @@ export default function AuditDetailView({ id }: { id: number }) {
                   ) : null}
                 </div>
               ))}
-            </>
+            </section>
           ) : null}
 
           {a.report?.conclusion?.length ? (
-            <>
+            <section className="page-break-before">
               <h2>Conclusion</h2>
-              <ul>
+              <ul className="conclusion-list">
                 {a.report.conclusion.map((c, i) => <li key={i}>{c}</li>)}
               </ul>
               <p style={{ marginTop: 18, color: "var(--ink-3)", fontSize: 13 }}>
-                Once the changes are complete, you can request a manual review and continue to
-                monitor the account to ensure it remains compliant.
+                Once the changes are complete, you can request a manual review from the relevant
+                platform and continue to monitor the account to ensure it remains compliant.
               </p>
-            </>
+            </section>
           ) : null}
         </article>
       )}
