@@ -1011,3 +1011,43 @@ def run_audit(
         "report": report,
         "elapsed_ms": int((time.monotonic() - started) * 1000),
     }
+
+
+def run_audits_bundle(
+    url: str,
+    audit_types: list[str],
+    *,
+    provider: str = "anthropic",
+    api_key: str | None = None,
+    model: str | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Run several audit types against the same URL in parallel threads.
+
+    Each call to run_audit is I/O-bound (HTTP fetch + LLM call), so threading
+    gives a near-linear speedup. Returns `{audit_type: result}`. Exceptions in
+    one type don't poison the others — failures show up as a `failed` status."""
+    out: dict[str, dict[str, Any]] = {}
+    with ThreadPoolExecutor(max_workers=min(4, len(audit_types) or 1)) as pool:
+        futures = {
+            pool.submit(
+                run_audit, url, t,
+                provider=provider, api_key=api_key, model=model,
+            ): t
+            for t in audit_types
+        }
+        for fut in as_completed(futures):
+            t = futures[fut]
+            try:
+                out[t] = fut.result()
+            except Exception as exc:  # noqa: BLE001
+                out[t] = {
+                    "status": "failed",
+                    "audit_type": t,
+                    "error": f"audit crashed: {exc}",
+                    "page_title": "",
+                    "summary": "",
+                    "findings": [],
+                    "report": {},
+                    "elapsed_ms": 0,
+                }
+    return out

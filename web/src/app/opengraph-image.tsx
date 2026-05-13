@@ -2,7 +2,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Bandit — Convert more visitors. Open-source CRO platform.";
+export const alt = "Cartlift — Lift every cart. Open-source ecommerce CRO platform.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -33,7 +33,7 @@ export default async function og() {
           }}
         />
 
-        {/* lime glow top-right */}
+        {/* coral glow top-right */}
         <div
           style={{
             position: "absolute",
@@ -42,7 +42,7 @@ export default async function og() {
             width: 600,
             height: 600,
             background:
-              "radial-gradient(circle, rgba(74,222,128,0.18) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(251,146,60,0.22) 0%, transparent 70%)",
             display: "flex",
           }}
         />
@@ -53,18 +53,18 @@ export default async function og() {
             style={{
               width: 48,
               height: 48,
-              border: "2.5px solid #4ade80",
+              border: "2.5px solid #fb923c",
               borderRadius: 10,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: 28,
               fontWeight: 700,
-              color: "#4ade80",
+              color: "#fb923c",
               fontFamily: "ui-monospace, monospace",
             }}
           >
-            B
+            C
           </div>
           <div
             style={{
@@ -75,7 +75,7 @@ export default async function og() {
               display: "flex",
             }}
           >
-            bandit
+            cartlift
           </div>
         </div>
 
@@ -96,9 +96,9 @@ export default async function og() {
             gap: 8,
           }}
         >
-          <span style={{ display: "flex" }}>Convert more visitors.</span>
-          <span style={{ display: "flex", color: "#4ade80" }}>
-            <span style={{ color: "#555", marginRight: 16 }}>›</span> Open-source.
+          <span style={{ display: "flex" }}>Lift every cart.</span>
+          <span style={{ display: "flex", color: "#fb923c" }}>
+            <span style={{ color: "#555", marginRight: 16 }}>›</span> Grow your store.
           </span>
         </div>
 
@@ -125,15 +125,15 @@ export default async function og() {
             <span style={{ color: "#333" }}>·</span>
             <span>seo</span>
             <span style={{ color: "#333" }}>·</span>
-            <span>compliance</span>
+            <span>trust</span>
             <span style={{ color: "#333" }}>·</span>
-            <span>gmc</span>
+            <span>shopping feed</span>
           </div>
           <div
             style={{
               fontFamily: "ui-monospace, monospace",
               fontSize: 16,
-              color: "#4ade80",
+              color: "#fb923c",
               display: "flex",
               alignItems: "center",
               gap: 10,

@@ -1,16 +1,16 @@
-# bandit
+# cartlift
 
-> **Convert more visitors. Open-source.**
+> **Lift every cart. Open-source.**
 >
-> The CRO daemon. Audits any URL for **conversion · seo · compliance · google merchant**, drafts page variants, ships them behind a JS snippet, and lets a multi-armed bandit allocate traffic to whatever wins.
+> The ecommerce growth daemon. Audits any store URL for **conversion · seo · trust · google merchant**, drafts page variants, ships them behind a JS snippet, and lets a multi-armed bandit allocate traffic to whatever wins.
 
 ```
-┌─ bandit ─────────────────────────────────────────────────────────────┐
+┌─ cartlift ───────────────────────────────────────────────────────────┐
 │  audit  →  draft  →  approve  →  ship  →  allocate  →  auto-ship    │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Built in public by [@codewithmuh](https://www.youtube.com/@codewithmuh) as a buildable open-source alternative to closed CRO platforms (Sherpa, VWO, Optimizely). MIT licensed — clone it, fork it, sell it.
+Built in public by [@codewithmuh](https://www.youtube.com/@codewithmuh) as a buildable open-source alternative to closed CRO platforms (VWO, Optimizely, Convert.com). Designed for ecommerce — Shopify, WooCommerce, BigCommerce, headless. MIT licensed — clone it, fork it, sell it.
 
 ---
 
@@ -18,19 +18,32 @@ Built in public by [@codewithmuh](https://www.youtube.com/@codewithmuh) as a bui
 
 | Audit | What it finds | Output |
 |---|---|---|
-| **CRO** | Hero copy, CTA contrast, social proof, mobile-fold cutoff, friction in checkout / pricing | 3-5 short findings · predicted lift % per finding · drafted page variants |
-| **SEO** | Title / meta / schema / H1 hierarchy / render-blocking resources | 4-6 short findings · severity per finding |
-| **Compliance** | Privacy + terms + returns alignment, contact identity, payment-method visibility, checkout transparency | Long-form report · 14-item checklist · 6 sections + recommendations + conclusion |
-| **GMC** | Google Merchant Center suspension audit — misrepresentation, prohibited content, shipping/returns alignment | GMC-grade report · diagnostics table + account areas + website checks + sections + conclusion |
+| **Conversion** | PDP / cart / checkout friction, hero copy, add-to-cart contrast, social proof above the fold, mobile-fold cutoff | 3-5 short findings · predicted lift % per finding · drafted page variants |
+| **SEO** | Title / meta / Product schema / H1 hierarchy / render-blocking resources / per-page diagnostics | scored A-F report · 4-6 prioritised findings · severity per finding |
+| **Trust & policy** | Privacy + terms + returns alignment, contact identity, payment-method visibility, checkout transparency | long-form report · 14-item checklist · 6 sections + recommendations + conclusion |
+| **Google Merchant** | GMC suspension audit — misrepresentation, prohibited content, shipping/returns alignment | GMC-grade report · diagnostics table + account areas + website checks + sections + conclusion |
 
 After the audit, the daemon can:
 
-1. **Draft variants** — turn each CRO/SEO finding into 2-3 candidate page variants (Claude or canned fallback)
-2. **A/B them** — your customer site loads `<script async src="…/s/<token>.js">`, the snippet picks variants per visitor, fires `expose` + `convert` events
+1. **Draft variants** — turn each conversion / SEO finding into 2-3 candidate page variants (Claude or canned fallback)
+2. **A/B them** — your store loads `<script async src="…/s/<token>.js">`, the snippet picks variants per shopper, fires `expose` + `convert` events
 3. **Allocate** — run `python manage.py allocate_bandits` (or cron it) and Thompson sampling re-weights traffic toward winners
 4. **Auto-ship** — when the leader has ≥500 samples + ≥95% posterior confidence, the experiment is pinned 100% to the winner and marked `winner`
 
 The whole loop is in this repo. Nothing is hand-waved.
+
+---
+
+## Public audit bundles
+
+A single submission on the marketing site (`POST /api/public/audits/`) creates **all four audits in parallel** and returns one shareable bundle slug. The `/audit/<group_slug>` page renders four tabs — conversion / seo / trust / google merchant — **all free to view, no login**. Email is only required to **download a PDF** of the report.
+
+```
+POST /api/public/audits/               → { group_slug, audits: { cro, seo, compliance, gmc } }
+GET  /api/public/audits/<group_slug>/  → same payload (cached + revalidated)
+POST /api/public/audits/<group_slug>/download/  body: {email}   → captures lead, returns bundle
+POST /api/public/audits/<group_slug>/claim/                     → attach whole bundle to current user (JWT)
+```
 
 ---
 
@@ -48,8 +61,8 @@ No CSS framework, no state library, no ORM other than Django's. One repo, three 
 ## Quickstart
 
 ```bash
-git clone https://github.com/codewithmuh/bandit.git
-cd bandit
+git clone https://github.com/codewithmuh/cartlift.git
+cd cartlift
 
 # 1. backend + database (Django + Postgres in Docker)
 cp .env.example .env                 # optional: paste ANTHROPIC_API_KEY
@@ -61,7 +74,7 @@ npm install
 npm run dev                          # http://localhost:3050
 ```
 
-Sign up at [`/signup`](http://localhost:3050/signup), paste a URL into the audit bar, watch the report come back.
+Paste a store URL into the hero on the landing page → ~30 seconds later you have four reports across four tabs. Sign up at [`/signup`](http://localhost:3050/signup) to claim the bundle into a dashboard, generate page variants, and run live A/B tests.
 
 > **No Claude key?** Every audit type returns a deterministic canned report so the demo flow always works. Useful on planes and during interviews.
 
@@ -73,8 +86,8 @@ Sign up at [`/signup`](http://localhost:3050/signup), paste a URL into the audit
 |---|---|
 | **web** (Next.js) | http://localhost:3050 |
 | **api** (Django + Gunicorn) | http://localhost:8050 |
-| **django admin** | http://localhost:8050/admin · `admin@bandit.dev` / `bandit_admin_dev` |
-| **postgres** | `localhost:5450` (user `bandit`, db `bandit`, pw `bandit_dev`) |
+| **django admin** | http://localhost:8050/admin · `admin@cartlift.dev` / `cartlift_admin_dev` |
+| **postgres** | `localhost:5450` (user `cartlift`, db `cartlift`, pw `cartlift_dev`) |
 
 ---
 
@@ -83,16 +96,17 @@ Sign up at [`/signup`](http://localhost:3050/signup), paste a URL into the audit
 Standard monorepo split: `web/` (Next.js) + `api/` (Django) + `docker-compose.yml` at the root.
 
 ```
-bandit/
+cartlift/
 ├── web/                       # Next.js 15 — marketing + dashboard (port 3050)
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── page.tsx           # landing (hero · audits grid · how · dashboard mock · POV · OS manifesto · FAQ)
-│   │   │   ├── signin/  signup/   # JWT auth (signup is audit-aware via ?audit=URL)
+│   │   │   ├── page.tsx           # landing (hero · k-beauty mock · audits grid · how · dashboard mock · POV · OS manifesto · FAQ · 4-step recap)
+│   │   │   ├── audit/[slug]/      # public 4-tab bundle viewer (free, no login) + PDF email gate
+│   │   │   ├── signin/  signup/   # JWT auth (signup is bundle-aware via ?claim=<group_slug>)
 │   │   │   └── dashboard/         # AuditBar header + 4 routes:
 │   │   │       ├── audits/        #   list + tabs + auto-run
-│   │   │       ├── audits/[id]/   #   per-audit report (download .md / .json / pdf)
-│   │   │       ├── sites/         #   register sites + copy install snippet
+│   │   │       ├── audits/[id]/   #   per-audit report (download .md / .json / pdf via window.print)
+│   │   │       ├── sites/         #   register stores + copy install snippet
 │   │   │       ├── experiments/   #   list + drill-down + approve/kill/pause
 │   │   │       └── settings/      #   account
 │   │   └── lib/api.ts             # typed fetch wrapper · JWT in localStorage
@@ -103,10 +117,12 @@ bandit/
 ├── api/                       # Django 5.1 + DRF (port 8050)
 │   ├── conf/                  # settings · urls · wsgi
 │   ├── accounts/              # custom email-login user · JWT issuance
-│   ├── sites/                 # customer sites + bnd_xxx snippet tokens
+│   ├── sites/                 # customer stores + bnd_xxx snippet tokens (legacy prefix preserved)
 │   ├── experiments/           # Experiment · Variant · Sample
 │   │   └── management/commands/allocate_bandits.py
-│   ├── audits/                # Audit model + runner.py + generator.py
+│   ├── audits/                # Audit + AuditLead models · runner.py (parallel) · generator.py
+│   │   ├── public_views.py    # 4-audit bundles + email-gated PDF download
+│   │   └── runner.py          # run_audit() + run_audits_bundle() (threaded)
 │   └── snippet/               # public, no-auth: /s/<token>.js + /active + /expose + /convert
 │
 ├── docker-compose.yml         # postgres + api
@@ -120,10 +136,19 @@ bandit/
 
 ## API surface
 
+### Public — no JWT, lets visitors share full bundles
+
+```
+GET   /api/health                                       public
+POST  /api/public/audits/                               body: {"url"} → 4-audit bundle
+GET   /api/public/audits/<group_slug>/                  → bundle payload
+POST  /api/public/audits/<group_slug>/download/         body: {"email"} → captures lead, returns bundle
+POST  /api/public/audits/<group_slug>/claim/            (JWT) attach whole bundle to current user
+```
+
 ### Authenticated (JWT bearer)
 
 ```
-GET   /api/health                                public
 POST  /api/auth/signup                           email + password (+ company)
 POST  /api/auth/login
 POST  /api/auth/refresh
@@ -145,7 +170,7 @@ GET   /api/experiments/variants/                 read-only
 ### Public — the snippet (CORS open, no JWT, scoped by token in URL)
 
 ```
-GET   /s/<token>.js                              ~3 KB JS for customer sites
+GET   /s/<token>.js                              ~3 KB JS for customer stores
 GET   /s/<token>/active                          JSON of active experiments + variants
 POST  /s/<token>/expose                          {"variant_id", "visitor"}
 POST  /s/<token>/convert                         {"variant_id", "visitor"}
@@ -158,9 +183,11 @@ POST  /s/<token>/convert                         {"variant_id", "visitor"}
 `api/audits/runner.py` — the "we own it" piece. Sequence:
 
 1. **Fetch** the URL with our UA, strip scripts/styles, collapse to ~8K chars of visible text, extract `<title>`.
-2. **Prompt** Claude with a type-specific consultant prompt (CRO / SEO / Compliance / GMC). Pull the first JSON block out of the response.
+2. **Prompt** Claude with a type-specific consultant prompt (conversion / SEO / trust / GMC). Pull the first JSON block out of the response.
 3. **Fallback** — if `ANTHROPIC_API_KEY` is unset OR the call fails, return a hand-written canned report. The demo never breaks.
 4. **Persist** `{status, page_title, summary, findings[], report{}, elapsed_ms}` on the `Audit` row.
+
+`run_audits_bundle(url, ["cro","seo","compliance","gmc"])` fans out via a `ThreadPoolExecutor` — four parallel I/O-bound LLM calls finish in roughly the time of one.
 
 Sync request handler. For prod scale, push the runner to Celery / Trigger.dev — the surface is a single function call.
 
@@ -168,7 +195,7 @@ Sync request handler. For prod scale, push the runner to Celery / Trigger.dev �
 
 ## The variant generator
 
-`api/audits/generator.py` — turns a CRO/SEO audit's findings into draft Experiments + Variants on a chosen Site.
+`api/audits/generator.py` — turns a conversion / SEO audit's findings into draft Experiments + Variants on a chosen Site.
 
 For each finding:
 - 1 control Variant (empty body, never applied)
@@ -197,31 +224,33 @@ Run it on a cron / Trigger.dev schedule (every 30-60 min in prod).
 
 ---
 
-## The snippet (~3 KB, what customers paste in their `<head>`)
+## The snippet (~3 KB, what stores paste in their `<head>`)
 
 ```html
-<script async src="https://your-bandit-instance.example.com/s/bnd_xxx.js"></script>
+<script async src="https://your-cartlift-instance.example.com/s/bnd_xxx.js"></script>
 ```
 
 ```js
-// fire conversions from anywhere on the customer page:
+// fire conversions from anywhere on the store page:
 window.bandit && window.bandit.convert(experimentId);
 ```
 
+> The global is `window.bandit` and snippet tokens are `bnd_xxx` — both kept stable from the original brand so installed snippets don't break. The customer-facing API isn't versioned by brand name.
+
 What it does:
 
-- Picks a stable variant per visitor (sticky via `localStorage`)
+- Picks a stable variant per shopper (sticky via `localStorage`)
 - Swaps DOM via the experiment's CSS selector (`h1` for `hero_headline`, etc.)
 - Fires `expose` on load via `navigator.sendBeacon`
 - Exposes `window.bandit.convert(experimentId)` — call it on a button click / form submit
-- Circuit breaker — if anything throws, the original page renders untouched. We don't break the host.
+- Circuit breaker — if anything throws, the original store page renders untouched. We don't break the host.
 
 ---
 
 ## Auth flow
 
 1. `/signup` → `POST /api/auth/signup` → returns `{access, refresh, user}`
-2. `writeTokens()` puts both in `localStorage` and dispatches a `bandit-auth` event
+2. `writeTokens()` puts both in `localStorage` and dispatches a `bandit-auth` event (internal, kept stable from the original brand)
 3. Every `api()` call attaches `Authorization: Bearer <access>`
 4. `Sidebar` calls `auth.me()` on mount — on 401/403, `clearTokens()` and redirect to `/signin`
 
@@ -239,7 +268,7 @@ docker compose logs api --tail 50 -f
 docker compose exec api python manage.py shell
 
 # psql
-docker compose exec db psql -U bandit
+docker compose exec db psql -U cartlift
 
 # new migration after editing api/<app>/models.py
 docker compose exec api python manage.py makemigrations
@@ -258,7 +287,7 @@ docker compose exec api python manage.py allocate_bandits
 - Email + password JWT. No OAuth providers unless asked.
 - Django ORM only.
 - Every fetch goes through `src/lib/api.ts::api()`.
-- Lime (`#15803d` text · `#4ade80` glows) is reserved for uplift / live / winning data — never UI chrome.
+- Coral (`#c2410c` text · `#fb923c` glows) is reserved for uplift / live / winning data — never UI chrome.
 - `border-radius: 4px` on buttons. No pills.
 - No emoji in code or UI.
 - `ANTHROPIC_API_KEY` stays server-side. Never bundles, never payloads.

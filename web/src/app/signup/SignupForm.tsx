@@ -48,7 +48,10 @@ function SignupInner() {
       if (claimSlug) {
         try {
           const claimed = await publicAudits.claim(claimSlug);
-          router.push(`/dashboard/audits/${claimed.id}`);
+          // Land on the cro audit (the marketing-canonical lens). If for some
+          // reason it's missing, just send them to the audits list.
+          const croId = claimed.audits.cro?.id;
+          router.push(croId ? `/dashboard/audits/${croId}` : "/dashboard/audits");
           return;
         } catch {
           // fall through to the normal path on claim failure

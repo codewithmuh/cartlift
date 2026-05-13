@@ -1,4 +1,4 @@
-/* Bandit — minimal service worker.
+/* Cartlift — minimal service worker.
  * Purpose: satisfy Chrome's PWA installability criteria so the browser shows
  * the "install" button in the URL bar. Network-only strategy — no offline
  * caching for now (the dashboard is auth-gated and benefits little from it).

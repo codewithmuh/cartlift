@@ -23,7 +23,7 @@ function fmt(n: number): string {
 export default async function GithubStars({ repo = "codewithmuh/bandit" }: { repo?: string }) {
   const stars = await getStars(repo);
   return (
-    <a href={`https://github.com/${repo}`} className="badge" aria-label={`Bandit on GitHub${stars ? ` — ${stars} stars` : ""}`}>
+    <a href={`https://github.com/${repo}`} className="badge" aria-label={`Cartlift on GitHub${stars ? ` — ${stars} stars` : ""}`}>
       <span className="key">★</span>
       {stars !== null ? fmt(stars) : "github"} on github ↗
     </a>

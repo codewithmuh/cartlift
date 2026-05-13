@@ -13,29 +13,29 @@ const BANDIT_TOKEN = process.env.NEXT_PUBLIC_BANDIT_TOKEN || "";
 export const metadata: Metadata = {
   metadataBase: new URL("https://bandit.dev"),
   title: {
-    default: "Bandit — Convert more visitors. Open-source.",
-    template: "%s · Bandit",
+    default: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
+    template: "%s · Cartlift",
   },
   description:
-    "Bandit is the open-source CRO platform. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs the A/B tests. Open source.",
-  applicationName: "Bandit",
+    "Cartlift is the open-source CRO platform for ecommerce. Audits your store pages, drafts conversion variants, and runs the A/B tests. More buyers. Higher AOV. Repeat customers. Open source.",
+  applicationName: "Cartlift",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Bandit",
+    title: "Cartlift",
   },
   openGraph: {
-    title: "Bandit — Convert more visitors. Open-source.",
+    title: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
     description:
-      "Audits, page variants, and A/B tests — all in one tool you can self-host.",
+      "Store audits, page variants, and A/B tests — all in one tool you can self-host.",
     type: "website",
-    siteName: "Bandit",
+    siteName: "Cartlift",
   },
   twitter: {
     card: "summary_large_image",
     creator: "@codewithmuh",
-    title: "Bandit — Convert more visitors. Open-source.",
+    title: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
   },
   authors: [{ name: "codewithmuh", url: "https://www.youtube.com/@codewithmuh" }],
 };
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icon-512.svg" />
-        <link rel="mask-icon" href="/icon-512.svg" color="#15803d" />
+        <link rel="mask-icon" href="/icon-512.svg" color="#c2410c" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

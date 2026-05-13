@@ -314,17 +314,32 @@ export const audits = {
     ),
 };
 
-// Public audit endpoints — no JWT required. Powers the /audit/<slug> share pages.
+// Public audit bundle — one /audit/<group_slug> page renders four reports
+// (cro/seo/compliance/gmc), all free to view. The download/ action gates
+// PDF export behind an email capture.
+export type AuditBundle = {
+  group_slug: string;
+  url: string;
+  created_at: string;
+  audits: Partial<Record<AuditType, Audit>>;
+};
+
 export const publicAudits = {
   run: (url: string) =>
-    api<Audit>("/api/public/audits/", {
+    api<AuditBundle>("/api/public/audits/", {
       method: "POST", auth: false,
       body: JSON.stringify({ url }),
     }),
-  get: (slug: string) =>
-    api<Audit>(`/api/public/audits/${slug}/`, { auth: false }),
-  claim: (slug: string) =>
-    api<Audit>(`/api/public/audits/${slug}/claim/`, { method: "POST" }),
+  get: (groupSlug: string) =>
+    api<AuditBundle>(`/api/public/audits/${groupSlug}/`, { auth: false }),
+  claim: (groupSlug: string) =>
+    api<AuditBundle>(`/api/public/audits/${groupSlug}/claim/`, { method: "POST" }),
+  // Email gate for PDF download — captures the visitor as a lead.
+  requestPdf: (groupSlug: string, email: string) =>
+    api<AuditBundle>(`/api/public/audits/${groupSlug}/download/`, {
+      method: "POST", auth: false,
+      body: JSON.stringify({ email }),
+    }),
 };
 
 export type Variant = {

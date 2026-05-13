@@ -41,19 +41,19 @@ export default function URLAuditInput({ compact = false }: { compact?: boolean }
     setBusy(true);
     setErr(null);
     try {
-      const audit = await publicAudits.run(target);
-      window.location.href = `/audit/${audit.slug}`;
+      const bundle = await publicAudits.run(target);
+      window.location.href = `/audit/${bundle.group_slug}`;
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 429) {
-          setErr("too many free audits from this network. try again in an hour, or self-host bandit.");
+          setErr("too many free audits from this network. try again in an hour, or self-host cartlift.");
         } else if (e.status === 400) {
-          setErr("that url didn't parse. try the full domain, like yoursite.com.");
+          setErr("that url didn't parse. try the full domain, like yourstore.com.");
         } else {
           setErr(`couldn't run the audit (${e.status}). try again or self-host.`);
         }
       } else {
-        setErr("couldn't reach bandit. is the api running?");
+        setErr("couldn't reach cartlift. is the api running?");
       }
       setBusy(false);
     }
@@ -67,7 +67,7 @@ export default function URLAuditInput({ compact = false }: { compact?: boolean }
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder={compact ? "your-site.com" : "your-site.com"}
+          placeholder={compact ? "your-store.com" : "your-store.com"}
           autoComplete="off"
           spellCheck={false}
           disabled={busy}
