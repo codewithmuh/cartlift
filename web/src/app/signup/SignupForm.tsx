@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
-import { ApiError, auth, writeTokens } from "@/lib/api";
+import { Suspense, useEffect, useState } from "react";
+import { ApiError, auth, publicAudits, readTokens, writeTokens } from "@/lib/api";
 
 function normalize(raw: string): string {
   let url = raw.trim();
@@ -16,6 +16,7 @@ function SignupInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auditHint = searchParams.get("audit") || "";
+  const claimSlug = searchParams.get("claim") || "";
   const display = auditHint ? normalize(auditHint) : "";
 
   const [email, setEmail] = useState("");
@@ -24,6 +25,16 @@ function SignupInner() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Already signed in? Send them straight where they were going.
+  useEffect(() => {
+    if (!readTokens()) return;
+    if (auditHint) {
+      router.replace(`/dashboard/audits?run=${encodeURIComponent(auditHint)}`);
+    } else {
+      router.replace("/dashboard");
+    }
+  }, [router, auditHint]);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
@@ -31,6 +42,19 @@ function SignupInner() {
     try {
       const { access, refresh } = await auth.signup(email, password, company);
       writeTokens({ access, refresh });
+
+      // If they came from a /audit/<slug> public preview, claim it instead of
+      // re-running — saves the Claude call and preserves their share-link findings.
+      if (claimSlug) {
+        try {
+          const claimed = await publicAudits.claim(claimSlug);
+          router.push(`/dashboard/audits/${claimed.id}`);
+          return;
+        } catch {
+          // fall through to the normal path on claim failure
+        }
+      }
+
       const next = auditHint
         ? `/dashboard/audits?run=${encodeURIComponent(auditHint)}`
         : "/dashboard";
@@ -78,7 +102,7 @@ function SignupInner() {
         </>
       ) : (
         <>
-          <h1>spin up <em>the daemon.</em></h1>
+          <h1>start with <em>bandit.</em></h1>
           <p className="subhead">
             no card. first three audits + first experiment on us. takes 30 seconds.
           </p>
@@ -111,7 +135,7 @@ function SignupInner() {
       <button type="submit" className="btn btn-lime" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "14px" }}>
         {busy
           ? (auditHint ? "claiming…" : "creating…")
-          : (auditHint ? "claim my audit →" : "spin up daemon →")}
+          : (auditHint ? "claim my audit →" : "create account →")}
       </button>
 
       <div className="free-row">

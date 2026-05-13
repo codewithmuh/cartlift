@@ -64,12 +64,20 @@ export async function api<T = unknown>(
   return data as T;
 }
 
+export type LlmProvider = "anthropic" | "openai";
+
 export type Me = {
   id: number;
   email: string;
   company: string;
   created_at: string;
   last_login: string | null;
+  llm_provider: LlmProvider;
+  llm_model: string;
+  has_anthropic_key: boolean;
+  anthropic_key_preview: string;
+  has_openai_key: boolean;
+  openai_key_preview: string;
 };
 
 export const auth = {
@@ -115,7 +123,6 @@ export type Finding = {
 
 export type ReportCheck = { item: string; ok: boolean; note?: string };
 export type ReportSection = { title: string; finding: string; recommendations: string[] };
-export type ReportMessage = { type: string; description: string; affected: number };
 
 export type CrawledPage = {
   label: string;
@@ -124,17 +131,158 @@ export type CrawledPage = {
   title: string;
 };
 
+// SEO-specific extensions to the audit report.
+export type SeoScores = {
+  technical: number;
+  content: number;
+  structured_data: number;
+  performance: number;
+  overall: number;
+};
+
+export type SeoKeyword = { term: string; count: number; density_pct: number };
+export type SeoHreflang = { lang: string; href: string };
+
+export type SeoPage = {
+  url: string;
+  status: number;
+  response_ms: number;
+  byte_size: number;
+  redirected?: boolean;
+  title: string;
+  title_length: number;
+  title_pixel_width?: number;
+  meta_description: string;
+  meta_description_length: number;
+  meta_description_pixel_width?: number;
+  canonical: string;
+  canonical_is_self: boolean;
+  robots: string;
+  indexable: boolean;
+  lang: string;
+  viewport: string;
+  doctype?: string;
+  charset?: string;
+  favicon?: string;
+  apple_touch_icon?: string;
+  h1_count: number;
+  h1: string;
+  h2_count?: number;
+  h2?: string[];
+  h3_count?: number;
+  word_count: number;
+  sentence_count?: number;
+  avg_sentence_length?: number;
+  stop_word_pct?: number;
+  paragraph_count?: number;
+  strong_bold_count?: number;
+  img_total: number;
+  img_with_alt: number;
+  img_alt_pct: number;
+  internal_links: number;
+  external_links: number;
+  schema_types: string[];
+  og: { title: string; description: string; image: string; url: string; type: string };
+  twitter: { card: string; title: string; description: string; image: string };
+  hreflangs?: SeoHreflang[];
+  js_files?: number;
+  css_files?: number;
+  inline_scripts?: number;
+  compression?: string;
+  server?: string;
+  x_powered_by?: string;
+  last_modified?: string;
+  url_param_count?: number;
+  url_has_session_id?: boolean;
+  url_depth?: number;
+  keywords?: SeoKeyword[];
+  error?: string;
+};
+
+export type SeoSearchPreview = {
+  url: string;
+  host: string;
+  title: string;
+  title_pixel_width: number;
+  title_truncated: boolean;
+  description: string;
+  description_pixel_width: number;
+  description_truncated: boolean;
+  favicon?: string;
+};
+
+export type SeoContentStats = {
+  avg_word_count: number;
+  avg_paragraph_count: number;
+  avg_sentence_length: number;
+  avg_stop_word_pct: number;
+  avg_response_ms: number;
+  avg_byte_size: number;
+  avg_internal_links: number;
+  total_schemas_found: number;
+  unique_schema_types: string[];
+};
+
+export type SeoSiteDiagnostics = {
+  https: boolean;
+  origin: string;
+  robots_txt: { present: boolean; url: string; sitemaps?: string[]; disallow_count?: number; byte_size?: number };
+  sitemap_xml: { present: boolean; url: string; url_count?: number; sample?: string[] };
+  www_canonicalization?: { checked: boolean; variants?: Record<string, string>; unified?: boolean };
+  duplicate_titles: { title: string; urls: string[] }[];
+  duplicate_metas: { meta: string; urls: string[] }[];
+  pages_missing_meta: string[];
+  pages_missing_h1: string[];
+  pages_missing_canonical: string[];
+  pages_multi_h1: string[];
+  pages_thin: string[];
+  pages_no_og_image: string[];
+  pages_no_schema: string[];
+  pages_4xx: string[];
+  pages_5xx: string[];
+  slow_pages: string[];
+  pages_no_favicon?: string[];
+  pages_no_charset?: string[];
+  pages_no_doctype?: string[];
+  pages_no_compression?: string[];
+  pages_with_session_id?: string[];
+  pages_with_redirects?: string[];
+  pages_long_title?: string[];
+  pages_long_meta?: string[];
+  pages_short_meta?: string[];
+  pages_high_stop_word_density?: string[];
+};
+
+export type SeoOpportunity = {
+  title: string;
+  severity: "high" | "medium" | "low";
+  surface: string;
+  effort: "low" | "medium" | "high";
+  impact: "low" | "medium" | "high";
+  note: string;
+};
+
 export type AuditReport = {
   checks?: ReportCheck[];
   sections?: ReportSection[];
   conclusion?: string[];
-  messages?: ReportMessage[];
   areas?: ReportSection[];
-  crawled?: CrawledPage[];
+  ai_analysis?: boolean;          // gmc — true when LLM cross-page analysis ran
+  crawled?: CrawledPage[];        // compliance + gmc — light label info per page
+  // SEO-only extensions
+  pages?: SeoPage[];              // SEO — full per-page snapshot
+  scores?: SeoScores;
+  site?: SeoSiteDiagnostics;
+  opportunities?: SeoOpportunity[];
+  search_preview?: SeoSearchPreview;
+  top_keywords?: SeoKeyword[];
+  content_stats?: SeoContentStats;
 };
 
 export type Audit = {
   id: number;
+  slug: string;
+  is_public: boolean;
   url: string;
   audit_type: AuditType;
   status: "queued" | "running" | "done" | "failed";
@@ -164,6 +312,19 @@ export const audits = {
       `/api/audits/${auditId}/generate_variants/`,
       { method: "POST", body: JSON.stringify({ site_id: siteId }) },
     ),
+};
+
+// Public audit endpoints — no JWT required. Powers the /audit/<slug> share pages.
+export const publicAudits = {
+  run: (url: string) =>
+    api<Audit>("/api/public/audits/", {
+      method: "POST", auth: false,
+      body: JSON.stringify({ url }),
+    }),
+  get: (slug: string) =>
+    api<Audit>(`/api/public/audits/${slug}/`, { auth: false }),
+  claim: (slug: string) =>
+    api<Audit>(`/api/public/audits/${slug}/claim/`, { method: "POST" }),
 };
 
 export type Variant = {

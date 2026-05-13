@@ -25,7 +25,7 @@ export default function SignupCanvas() {
           <span className="ln k">→ workspace ready · token: bnd_xxxx</span>
           <span className="ln c"></span>
           <span className="ln c">$ bandit watch</span>
-          <span className="ln c">~ daemon online. monitoring 1 site.</span>
+          <span className="ln c">~ bandit online. monitoring 1 site.</span>
           <span className="ln c">~ first variant draft expected in &lt; 4 min.</span>
           <span className="ln c"></span>
           <span className="ln k">● ready to ship.</span>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiError, audits, sites as sitesApi, type Audit, type Site } from "@/lib/api";
+import SeoReport from "./SeoReport";
 
 const TYPE_LABEL: Record<string, string> = {
   cro: "Conversion Rate",
@@ -47,18 +48,8 @@ function buildMarkdown(a: Audit): string {
       lines.push("");
     }
   }
-  if (a.report?.messages?.length) {
-    lines.push("## GMC Diagnostics");
-    lines.push("");
-    lines.push("| Type | Description | Affected |");
-    lines.push("|------|-------------|----------|");
-    for (const m of a.report.messages) {
-      lines.push(`| ${m.type} | ${m.description} | ${m.affected} |`);
-    }
-    lines.push("");
-  }
   if (a.report?.areas?.length) {
-    lines.push("## Account areas");
+    lines.push("## GMC eligibility risks (observed on the website)");
     lines.push("");
     for (const s of a.report.areas) {
       lines.push(`### ${s.title}`);
@@ -170,6 +161,7 @@ export default function AuditDetailView({ id }: { id: number }) {
   if (!a) return <p className="fine">loading…</p>;
 
   const isLongForm = a.audit_type === "compliance" || a.audit_type === "gmc";
+  const isRichSeo = a.audit_type === "seo" && !!a.report?.scores;
   const canGenerate = a.audit_type === "cro" || a.audit_type === "seo";
   const safeUrl = a.url.replace(/[^a-z0-9]/gi, "-").slice(0, 60);
 
@@ -222,7 +214,7 @@ export default function AuditDetailView({ id }: { id: number }) {
           background: genResult.startsWith("✓") ? "var(--lime-soft)" : "var(--red-soft)",
           borderLeft: `2px solid ${genResult.startsWith("✓") ? "var(--lime)" : "var(--red)"}`,
           fontFamily: "var(--mono)",
-          fontSize: 12,
+          fontSize: 14,
           color: genResult.startsWith("✓") ? "var(--lime)" : "var(--red)",
           marginBottom: 18,
           borderRadius: "0 4px 4px 0",
@@ -239,11 +231,84 @@ export default function AuditDetailView({ id }: { id: number }) {
         </div>
       )}
 
-      {/* Short-form view (CRO + SEO) */}
-      {!isLongForm && (
+      {/* Rich SEO report (multi-page crawl) */}
+      {isRichSeo && (
+        <article className="seo-report-doc">
+          {/* ---- Print-only cover page ---- */}
+          <section className="print-cover seo-print-cover">
+            <div className="cover-brand">
+              <span className="cover-mark">B</span>
+              <span className="cover-name">bandit</span>
+            </div>
+            <div className="seo-cover-eyebrow">SEO Audit Report</div>
+            <h1 className="cover-title">{a.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</h1>
+
+            <div className="seo-cover-score-row">
+              <div className="seo-cover-grade">
+                <span className="grade-letter">{
+                  (a.report?.scores?.overall ?? 0) >= 90 ? "A"
+                  : (a.report?.scores?.overall ?? 0) >= 75 ? "B"
+                  : (a.report?.scores?.overall ?? 0) >= 60 ? "C"
+                  : (a.report?.scores?.overall ?? 0) >= 40 ? "D" : "F"
+                }</span>
+                <span className="grade-num">{a.report?.scores?.overall ?? 0}<small>/100</small></span>
+                <span className="grade-lbl">overall</span>
+              </div>
+              <div className="seo-cover-scores">
+                <div><span>technical</span><strong>{a.report?.scores?.technical ?? 0}</strong></div>
+                <div><span>content</span><strong>{a.report?.scores?.content ?? 0}</strong></div>
+                <div><span>structured data</span><strong>{a.report?.scores?.structured_data ?? 0}</strong></div>
+                <div><span>performance</span><strong>{a.report?.scores?.performance ?? 0}</strong></div>
+              </div>
+            </div>
+
+            <div className="cover-details">
+              <h4>Audit details</h4>
+              <p><strong>Site:</strong> <a href={a.url}>{a.url}</a></p>
+              <p><strong>Audit date:</strong> {new Date(a.created_at).toLocaleString()}</p>
+              <p><strong>Pages crawled:</strong> {a.report?.pages?.length ?? 0}</p>
+              <p><strong>Elapsed:</strong> {(a.elapsed_ms / 1000).toFixed(1)}s</p>
+              <p><strong>Checks:</strong> {(a.report?.checks?.length ?? 0) - (a.report?.checks?.filter((c) => !c.ok).length ?? 0)} passing · {a.report?.checks?.filter((c) => !c.ok).length ?? 0} failing of {a.report?.checks?.length ?? 0}</p>
+            </div>
+
+            <div className="cover-about">
+              <h4>About this report</h4>
+              <p>
+                This is a multi-page SEO audit produced by Bandit. We crawled up to {a.report?.pages?.length ?? 0} pages of
+                your site, captured every per-page SEO signal (titles, metas, H1s, schemas, canonicals,
+                response headers, content density), and aggregated them into the diagnostics + scores below.
+              </p>
+              <p>
+                Each finding is grounded in real data from your site — page URLs, byte counts, response times,
+                and structured-data types are all included so your engineering team can act on them directly.
+              </p>
+              <p><strong>This report contains:</strong></p>
+              <ol>
+                <li>Search preview — how your homepage looks in Google</li>
+                <li>Site diagnostics + scores per axis</li>
+                <li>Crawled pages table with per-page detail</li>
+                <li>Top opportunities (sorted by impact)</li>
+                <li>Priority issues with recommendations</li>
+                <li>Full pass/fail check list</li>
+                <li>Do-this-week conclusion</li>
+              </ol>
+            </div>
+          </section>
+
+          {a.summary && (
+            <p className="seo-print-summary mono" style={{ fontSize: 15, color: "var(--ink-2)", marginBottom: 24, lineHeight: 1.65, padding: "16px 18px", background: "var(--bg-1)", borderLeft: "2px solid var(--lime)", borderRadius: "0 4px 4px 0" }}>
+              {a.summary}
+            </p>
+          )}
+          <SeoReport a={a} />
+        </article>
+      )}
+
+      {/* Short-form view (CRO, and legacy SEO without scores) */}
+      {!isLongForm && !isRichSeo && (
         <>
           {a.summary && (
-            <p className="mono" style={{ fontSize: 14, color: "var(--ink-2)", marginBottom: 24, lineHeight: 1.65, padding: "16px 18px", background: "var(--bg-1)", borderLeft: "2px solid var(--lime)", borderRadius: "0 4px 4px 0" }}>
+            <p className="mono" style={{ fontSize: 15, color: "var(--ink-2)", marginBottom: 24, lineHeight: 1.65, padding: "16px 18px", background: "var(--bg-1)", borderLeft: "2px solid var(--lime)", borderRadius: "0 4px 4px 0" }}>
               {a.summary}
             </p>
           )}
@@ -258,7 +323,7 @@ export default function AuditDetailView({ id }: { id: number }) {
                 boxShadow: "var(--shadow-md)",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                  <span className="mono" style={{ fontSize: 13, color: "var(--ink)", fontWeight: 600 }}>
+                  <span className="mono" style={{ fontSize: 15, color: "var(--ink)", fontWeight: 600 }}>
                     [{f.surface}] {f.label}
                   </span>
                   {f.predicted_lift_pct > 0 && (
@@ -267,7 +332,7 @@ export default function AuditDetailView({ id }: { id: number }) {
                     </span>
                   )}
                 </div>
-                <p className="mono" style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 10, lineHeight: 1.7 }}>
+                <p className="mono" style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 10, lineHeight: 1.7 }}>
                   {f.note}
                 </p>
               </div>
@@ -300,24 +365,23 @@ export default function AuditDetailView({ id }: { id: number }) {
               <h4>About the audit</h4>
               <p>
                 {a.audit_type === "gmc"
-                  ? "Our Google Merchant Center Audit covers the Google Merchant Center account, your product feed, and your website. We review these three areas carefully to uncover the cause of your suspension or account issues. Sometimes there's just one leading cause, but often the reason involves many factors."
+                  ? "This audit reviews your public website for the signals Google Merchant Center reviewers use when evaluating eligibility — misrepresentation, pricing alignment, return-policy consistency, checkout transparency, and contact-info integrity. We crawl the same pages a reviewer would read."
                   : "Our compliance audit reviews your storefront against the trust + transparency standards expected by major commerce platforms (Google Shopping, Meta, payment processors). Each section ends with concrete actions you can apply this week."}
               </p>
               <p>
-                Under each section, we'll provide our results and recommendations to improve the error
-                and give your store the best chance of fixing your account issues.
+                {a.audit_type === "gmc"
+                  ? "Bandit does NOT have access to your Google Merchant Center account, product feed, or diagnostics tab. We do not invent suspension messages or affected-item counts. Every finding below is observable from the pages we crawled."
+                  : "Under each section we provide what we found and concrete recommendations to improve."}
               </p>
               <p>
-                Please keep in mind that the recommendations are to offer you the BEST chance of fixing the
-                disapproval. We recommend you fix every issue and go above and beyond to improve your website.
-                Best practices and platform policies guide our recommendations, insights, and findings.
+                Recommendations are written for the BEST chance of avoiding policy issues. Even if other sites get away with these gaps today, platform enforcement changes — we recommend closing every flagged gap.
               </p>
               <p>
-                <strong>In this audit, we cover {a.audit_type === "gmc" ? "2" : "1"} key area{a.audit_type === "gmc" ? "s" : ""} of your account:</strong>
+                <strong>What this audit covers:</strong>
               </p>
               <ol>
-                {a.audit_type === "gmc" && <li>Google Merchant Center Diagnostics</li>}
-                <li>Website and Content</li>
+                {a.audit_type === "gmc" && <li>Cross-page contradictions that drive misrepresentation risk</li>}
+                <li>Website trust + transparency checklist</li>
               </ol>
             </div>
           </section>
@@ -333,7 +397,7 @@ export default function AuditDetailView({ id }: { id: number }) {
           <h3 className="no-print">About this audit</h3>
           <p className="no-print">
             {a.audit_type === "gmc"
-              ? "Our Google Merchant Center audit covers the GMC account, your product feed, and your website. We review these three areas to uncover the cause of your suspension or account issues. Sometimes there's one leading cause, but often the reason involves many factors."
+              ? "We crawl the public pages a Google Merchant Center policy reviewer would read — homepage, returns, shipping, privacy, terms, about, contact, cart, checkout — and surface the cross-page contradictions and missing trust signals most likely to put your eligibility at risk."
               : "Our compliance audit reviews your site against the trust + transparency standards expected by major platforms (Google Shopping, Meta, payment processors). Each section ends with concrete actions you can apply this week."}
           </p>
           <p className="no-print">
@@ -344,11 +408,11 @@ export default function AuditDetailView({ id }: { id: number }) {
           {a.report?.crawled?.length ? (
             <div className="no-print">
               <h3>Pages we read</h3>
-              <p style={{ color: "var(--ink-3)", fontSize: 13 }}>
+              <p style={{ color: "var(--ink-3)", fontSize: 15 }}>
                 The auditor crawled the homepage and key policy pages, then compared them
                 for cross-page contradictions. These are the {a.report.crawled.length} pages it inspected:
               </p>
-              <ul style={{ fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.85 }}>
+              <ul style={{ fontFamily: "var(--mono)", fontSize: 14, lineHeight: 1.85 }}>
                 {a.report.crawled.map((p) => (
                   <li key={p.url}>
                     <span style={{ color: "var(--lime)", fontWeight: 600 }}>
@@ -363,48 +427,33 @@ export default function AuditDetailView({ id }: { id: number }) {
             </div>
           ) : null}
 
-          {a.report?.messages?.length ? (
-            <section className="page-break-before">
-              <h2>A. Google Merchant Center Audit</h2>
-              <p>
-                We have accessed the Google Merchant Center account and reviewed the
-                diagnostics tab to identify any errors that appear. In this section, we can
-                find 3 types of messages from Google:
-              </p>
-              <ul>
-                <li>Notifications (mostly suggestions from Google to improve your data feed)</li>
-                <li>Warnings (these are not a sign of product disapproval, but something to fix if possible)</li>
-                <li>Errors (these need to be fixed right away)</li>
-              </ul>
-              <p>Messages found in the Diagnostics tab:</p>
-              <p>Messages found in the Diagnostics tab:</p>
-              <table className="diagnostics-table">
-                <thead>
-                  <tr>
-                    <th>Type of Message</th>
-                    <th>Description</th>
-                    <th style={{ textAlign: "right" }}>Affected Items</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {a.report.messages.map((m, i) => (
-                    <tr key={i}>
-                      <td className={`msg-type msg-${m.type.toLowerCase()}`}>{m.type}</td>
-                      <td>{m.description}</td>
-                      <td style={{ textAlign: "right" }}>{m.affected}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
+          {a.audit_type === "gmc" ? (
+            <div className="gmc-scope-note no-print">
+              <strong>Scope of this audit.</strong> Bandit does not have access
+              to your Google Merchant Center account, product feed, or
+              diagnostics tab. Every risk below is observed by reading your
+              public website — the same pages a Google policy reviewer reads
+              when evaluating eligibility.
+            </div>
+          ) : null}
+
+          {a.audit_type === "gmc" && a.report?.ai_analysis === false ? (
+            <div className="gmc-no-llm-note no-print">
+              <strong>Deeper LLM analysis was not run.</strong> The auto-detected
+              checklist below is fully populated, but cross-page contradiction
+              analysis (rewritten copy, multi-page wording mismatches) requires
+              an Anthropic API key. Set <code>ANTHROPIC_API_KEY</code> on the
+              API container and re-run this audit for richer findings.
+            </div>
           ) : null}
 
           {a.report?.areas?.length ? (
             <section>
-              <h2>{a.report?.messages?.length ? "Outcomes of the Google Merchant Center Audit" : "Outcomes"}</h2>
+              <h2>{a.audit_type === "gmc" ? "A. GMC eligibility risks observed on your website" : "Outcomes"}</h2>
               <p>
-                In this section of the audit, we analyse the key contributing factors that
-                may be resulting in your account&apos;s suspension.
+                {a.audit_type === "gmc"
+                  ? "These are the website-level signals most likely to put your GMC eligibility at risk. They were inferred by cross-comparing the pages we crawled — not pulled from any GMC account."
+                  : "In this section of the audit, we analyse the key contributing factors that may put your storefront at risk with platform reviewers."}
               </p>
               {a.report.areas.map((s, i) => (
                 <div key={i} className="report-section">
@@ -428,24 +477,19 @@ export default function AuditDetailView({ id }: { id: number }) {
 
           {a.report?.checks?.length ? (
             <section className="page-break-before">
-              <h2>{a.report?.areas?.length ? "B. Website audit" : "Compliance checks"}</h2>
+              <h2>{a.report?.areas?.length ? "B. Auto-detected compliance checklist" : "Compliance checks"}</h2>
               <p>
-                Website-related issues cause a large number of Google Merchant Center
-                suspensions. We reviewed the website to determine whether the warnings
-                flagged by Google could be linked to missing information, inaccurate
-                representation, poor user experience, or other potential issues that may
-                impact trust and compliance.
+                {a.audit_type === "gmc"
+                  ? "Every check below is computed automatically by reading the crawled HTML — payment-icon detection, guest-checkout vs forced sign-in, contact-email consistency, return-window language, and so on. No LLM is involved in this section, so the results are deterministic and verifiable."
+                  : "Website-related issues are the most common cause of platform-policy disputes. We reviewed the crawled pages for trust, transparency, and consistency signals."}
               </p>
-              <p>Here are the results for your store:</p>
               <table className="check-table">
                 <tbody>
                   {a.report.checks.map((c, i) => (
                     <tr key={i}>
                       <td>
-                        {c.item}
-                        {c.note && !c.ok && (
-                          <span className="check-note"> — See "Results" below for details</span>
-                        )}
+                        <div className="check-item">{c.item}</div>
+                        {c.note && <div className="check-note-line">{c.note}</div>}
                       </td>
                       <td className={c.ok ? "ok" : "bad"}>{c.ok ? "✓" : "✗"}</td>
                     </tr>
@@ -484,7 +528,7 @@ export default function AuditDetailView({ id }: { id: number }) {
               <ul className="conclusion-list">
                 {a.report.conclusion.map((c, i) => <li key={i}>{c}</li>)}
               </ul>
-              <p style={{ marginTop: 18, color: "var(--ink-3)", fontSize: 13 }}>
+              <p style={{ marginTop: 18, color: "var(--ink-3)", fontSize: 15 }}>
                 Once the changes are complete, you can request a manual review from the relevant
                 platform and continue to monitor the account to ensure it remains compliant.
               </p>

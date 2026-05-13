@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import URLAuditInput from "./URLAuditInput";
+import GithubStars from "./GithubStars";
+import NavAuthLinks from "./NavAuthLinks";
 
 export const metadata: Metadata = {
-  title: "Convert more visitors. Open-source CRO daemon.",
+  title: "Convert more visitors. Open-source CRO platform.",
   description:
-    "Bandit is the open-source CRO daemon. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs A/B tests via Thompson sampling. MIT licensed.",
+    "Bandit is the open-source CRO platform. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs A/B tests via Thompson sampling. MIT licensed.",
   alternates: { canonical: "/" },
   keywords: [
     "open source CRO",
@@ -33,13 +35,19 @@ export default function HomePage() {
             bandit
           </Link>
           <div className="nav-links">
-            <a href="#audits">audits</a>
-            <a href="#how">how</a>
-            <a href="#dash">dashboard</a>
-            <a href="#faq">faq</a>
-            <a href="https://github.com/codewithmuh/bandit" className="mono" style={{ color: "var(--ink-3)" }}>github ↗</a>
-            <Link href="/signin" className="mono" style={{ color: "var(--ink-3)" }}>sign in</Link>
-            <Link href="/signup" className="btn btn-lime">try free →</Link>
+            <a
+              href="https://github.com/codewithmuh/bandit"
+              className="btn btn-ghost btn-gh"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View Bandit on GitHub"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.32c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.16-.89-1.16-.73-.5.05-.49.05-.49.81.06 1.24.83 1.24.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.51-1.07-1.77-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.66 7.66 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.52.56.83 1.28.83 2.15 0 3.07-1.87 3.74-3.65 3.94.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+              </svg>
+              <span>github</span>
+            </a>
+            <NavAuthLinks />
           </div>
         </div>
       </nav>
@@ -51,7 +59,7 @@ export default function HomePage() {
             <div className="hero-split">
               {/* LEFT — pitch */}
               <div>
-                <div className="eyebrow">open source</div>
+                <div className="eyebrow">the open-source cro daemon</div>
 
                 <h1 className="h-display" style={{ marginTop: 18 }}>
                   Convert more visitors.<br />
@@ -59,7 +67,9 @@ export default function HomePage() {
                 </h1>
 
                 <p className="lede">
-                  Audits, page variants, A/B tests — all in one daemon you can self-host.
+                  Bandit audits any URL, drafts page variants, ships them through a snippet,
+                  and runs Thompson-sampled A/B tests that auto-pin winners. One tool. MIT licensed.
+                  Yours to self-host.
                 </p>
 
                 <URLAuditInput />
@@ -124,9 +134,7 @@ export default function HomePage() {
             {/* Open-source proof — replaces the made-up "trusted by" row */}
             <div className="os-proof">
               <span className="lbl">100% open source</span>
-              <a href="https://github.com/codewithmuh/bandit" className="badge">
-                <span className="key">github ↗</span>
-              </a>
+              <GithubStars repo="codewithmuh/bandit" />
               <span className="badge lime">
                 MIT
               </span>
@@ -144,7 +152,7 @@ export default function HomePage() {
           <div className="shell">
             <div className="sec-head">
               <div>
-                <div className="eyebrow">four audits, one daemon</div>
+                <div className="eyebrow">four audits, one tool</div>
                 <h2 className="h-section" style={{ marginTop: 16 }}>
                   Run any of these <em>on any URL.</em>
                 </h2>
@@ -242,7 +250,7 @@ export default function HomePage() {
                 </h2>
               </div>
               <p className="lede">
-                Three steps. The daemon does all of them. You approve, you keep your job,
+                Three steps. Bandit does all of them. You approve, you keep your job,
                 you read the changelog over coffee.
               </p>
             </div>
@@ -250,19 +258,21 @@ export default function HomePage() {
             <div className="how">
               <div className="how-step">
                 <div className="step-num">step.01</div>
-                <h3>Bandit reads the room.</h3>
+                <h3>Bandit reads the page.</h3>
                 <p>
-                  Every session, every scroll, every dead-click is parsed. The
-                  daemon learns where attention drops, where copy fails, where buyers
-                  hesitate. Not heatmaps — causal hypotheses.
+                  Paste a URL. Bandit fetches the live HTML, parses the visible copy
+                  + structure, and runs a Claude (or OpenAI) audit against it —
+                  CRO, SEO, compliance, or GMC. Findings come back annotated with
+                  predicted lift in ~30 seconds.
                 </p>
               </div>
               <div className="how-step">
                 <div className="step-num">step.02</div>
-                <h3>Bandit drafts the fix.</h3>
+                <h3>Bandit drafts the variants.</h3>
                 <p>
-                  New headlines, new layouts, new CTAs — drafted as page variants
-                  with the rationale attached. Nothing ships without your one-click
+                  Each CRO finding becomes a draft Experiment with 2–3 candidate
+                  rewrites — headlines, CTAs, trust rows, pricing copy. Every variant
+                  carries its rationale. Nothing ships without your one-click
                   approval.
                 </p>
               </div>
@@ -270,8 +280,10 @@ export default function HomePage() {
                 <div className="step-num">step.03</div>
                 <h3>Bandit runs the trial.</h3>
                 <p>
-                  Multi-armed bandit allocates traffic to the winners as they emerge.
-                  Statistical significance, not gut. Losers are killed automatically.
+                  Approved variants ship through a 3KB JS snippet. A Thompson-sampling
+                  allocator re-weights every 30 min as samples come in. When the leader
+                  hits ≥95% posterior confidence on ≥500 samples with positive uplift,
+                  it gets pinned to 100% traffic — losers trimmed to 0.
                 </p>
               </div>
             </div>
@@ -299,8 +311,8 @@ export default function HomePage() {
                 <span className="mono" style={{ color: "var(--ink-2)" }}>~/yeti.co/experiments</span>
                 <div className="tab">overview</div>
                 <div className="tab active">experiments</div>
-                <div className="tab">variants</div>
-                <div className="tab">sessions</div>
+                <div className="tab">audits</div>
+                <div className="tab">sites</div>
                 <div className="right">
                   <span className="mono">last 30d</span>
                   <span className="mono" style={{ color: "var(--lime)" }}>● live</span>
@@ -395,20 +407,21 @@ export default function HomePage() {
           <div className="shell">
             <div className="sec-head">
               <div>
-                <div className="eyebrow">pov</div>
+                <div className="eyebrow">pov · before bandit</div>
                 <h2 className="h-section" style={{ marginTop: 16 }}>
-                  You wanted to run <em>one A/B test.</em>
+                  You wanted to ship <em>one A/B test.</em>
                 </h2>
               </div>
               <p className="lede">
                 Three weeks later, you have eleven Slack threads, two stand-ups, a Figma comment storm,
-                a Jira ticket no one owns, and zero experiments live.
+                a Jira ticket no one owns, and zero variants live. Bandit replaces all of it: it
+                audits, drafts, ships, and auto-pins the winner from one repo.
               </p>
             </div>
 
             <div className="pov">
               <div className="pov-counter zero">
-                <span>experiments launched</span>
+                <span>variants live</span>
                 <strong className="mono">0</strong>
               </div>
 
@@ -461,14 +474,48 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bandit-resolve">
-              <div className="left">
-                <div className="label">bandit · 4 minutes later</div>
-                <div className="title">
-                  hero · headline · v07 — <strong>+18.3%</strong> · auto-shipped
-                </div>
+            <div className="bandit-resolve-v2">
+              <div className="resolve-head">
+                <span className="resolve-label">
+                  <span className="resolve-dot" />
+                  bandit · same workflow, one repo
+                </span>
+                <span className="resolve-counter">
+                  variants live <strong>3</strong>
+                </span>
               </div>
-              <button className="btn btn-lime">approve →</button>
+
+              <ol className="resolve-steps">
+                <li>
+                  <span className="step-time">~30s</span>
+                  <span className="step-body">
+                    paste the url → bandit returns ranked CRO findings with predicted lift
+                  </span>
+                </li>
+                <li>
+                  <span className="step-time">1 click</span>
+                  <span className="step-body">
+                    pick a finding → claude (or openai) drafts 3 candidate rewrites with rationale
+                  </span>
+                </li>
+                <li>
+                  <span className="step-time">1 approve</span>
+                  <span className="step-body">
+                    snippet picks them up on the next page load — control + variants, sticky per visitor
+                  </span>
+                </li>
+                <li>
+                  <span className="step-time">auto</span>
+                  <span className="step-body">
+                    thompson allocator re-weights every cycle · pins leader at <strong>≥95% confidence</strong> with ≥500 samples
+                  </span>
+                </li>
+              </ol>
+
+              <div className="resolve-foot">
+                <span className="mono fine">zero slack threads · zero standups · zero figma comment storms</span>
+                <button className="btn btn-lime">audit your site →</button>
+              </div>
             </div>
           </div>
         </section>
@@ -480,33 +527,33 @@ export default function HomePage() {
             <h2 className="h-section" style={{ marginTop: 16 }}>
               CRO tools should be <em>code</em>, not contracts.
             </h2>
-            <p className="lede" style={{ marginTop: 22, fontSize: 16 }}>
+            <p className="lede" style={{ marginTop: 22, fontSize: 17 }}>
               Closed-source CRO platforms charge $1k–$5k/mo and lock your traffic + experiment
               data inside their dashboard. Bandit ships the same engine — audits, variant
-              generator, multi-armed bandit allocator, A/B snippet — under MIT license.
-              Clone the repo. Run it on a $5 droplet. Bring your own Claude key.
+              generator, Thompson-sampled allocator, A/B snippet — under MIT license.
+              Clone the repo. Run it on a $5 droplet. Bring your own Claude or OpenAI key.
               The data stays in your Postgres.
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginTop: 36 }}>
               <div style={{ padding: 22, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 6 }}>
-                <div className="mono" style={{ color: "var(--lime)", fontSize: 11, marginBottom: 10, letterSpacing: "0.06em" }}>$ git clone</div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 8 }}>Self-host in 60 seconds</div>
-                <p style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
+                <div className="mono" style={{ color: "var(--lime)", fontSize: 13, marginBottom: 10, letterSpacing: "0.06em" }}>$ git clone</div>
+                <div style={{ fontWeight: 600, fontSize: 16, color: "var(--ink)", marginBottom: 8 }}>Self-host in 60 seconds</div>
+                <p style={{ fontSize: 15, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
                   Docker compose. Postgres + Django + Next.js. Runs on your laptop, your VPS, or your cluster.
                 </p>
               </div>
               <div style={{ padding: 22, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 6 }}>
-                <div className="mono" style={{ color: "var(--lime)", fontSize: 11, marginBottom: 10, letterSpacing: "0.06em" }}>$ ANTHROPIC_API_KEY=...</div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 8 }}>Bring your own LLM</div>
-                <p style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
-                  Drop your Claude or OpenAI key in <span className="mono">.env</span>. Runs locally — keys never touch our servers.
+                <div className="mono" style={{ color: "var(--lime)", fontSize: 13, marginBottom: 10, letterSpacing: "0.06em" }}>$ paste key · pick model</div>
+                <div style={{ fontWeight: 600, fontSize: 16, color: "var(--ink)", marginBottom: 8 }}>Bring your own LLM</div>
+                <p style={{ fontSize: 15, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
+                  Paste a Claude or OpenAI key in <span className="mono">/dashboard/settings</span>. Pick the model. Per-user — keys never touch any other server.
                 </p>
               </div>
               <div style={{ padding: 22, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 6 }}>
-                <div className="mono" style={{ color: "var(--lime)", fontSize: 11, marginBottom: 10, letterSpacing: "0.06em" }}>$ fork → tune → ship</div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 8 }}>Your prompts, your rules</div>
-                <p style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
+                <div className="mono" style={{ color: "var(--lime)", fontSize: 13, marginBottom: 10, letterSpacing: "0.06em" }}>$ fork → tune → ship</div>
+                <div style={{ fontWeight: 600, fontSize: 16, color: "var(--ink)", marginBottom: 8 }}>Your prompts, your rules</div>
+                <p style={{ fontSize: 15, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
                   Edit the audit prompts, swap the bandit algorithm, fork the dashboard. It's all in one repo.
                 </p>
               </div>
@@ -526,56 +573,66 @@ export default function HomePage() {
               <details className="faq-row">
                 <summary>How does bandit actually change my site?</summary>
                 <p>
-                  A small JS snippet. About 4kb gzipped. It loads asynchronously, defers
-                  rendering nothing, and only swaps the elements you have explicitly opted
-                  into. The original page is the control — your visitors who get the variant
-                  are sampled at the percentage you set.
+                  A small JS snippet — about 3kb. It loads asynchronously and only
+                  swaps the elements that match a variant's CSS selector. The original
+                  page is the control; visitors who get the variant are routed by a
+                  Thompson-sampling allocator that re-weights as samples come in.
                 </p>
               </details>
 
               <details className="faq-row">
                 <summary>Will this break my site?</summary>
                 <p>
-                  Only if you let it. Every variant is preview-able first. Every variant has
-                  a kill switch. The snippet has a global circuit breaker — if anything throws,
-                  we serve the original instantly. We have not broken a customer site in 18
-                  months of running this in production.
+                  The snippet wraps every DOM swap in a try/catch — if anything throws,
+                  the original page renders untouched. Every experiment has approve /
+                  pause / kill controls in the dashboard. The whole snippet is one
+                  template in <span className="mono">api/snippet/views.py</span> —
+                  read it before you paste it.
                 </p>
               </details>
 
               <details className="faq-row">
                 <summary>How do you decide what to test?</summary>
                 <p>
-                  We look at the highest-traffic page where session recordings show the most
-                  early drop-off. That is almost always the hero or the primary CTA. We start
-                  there because the math is easiest: you reach significance faster.
+                  You paste a URL. Bandit fetches the live HTML and runs a CRO audit
+                  against it (Claude or OpenAI, your key). Each finding — vague headline,
+                  low-contrast CTA, missing trust row, etc. — comes back with a predicted
+                  lift, and you click <em>generate variants</em> to turn the findings you
+                  like into draft experiments. No telemetry, no session recordings — just
+                  the page.
                 </p>
               </details>
 
               <details className="faq-row">
                 <summary>How long until I see lift?</summary>
                 <p>
-                  At ~10k weekly visitors on the page, most experiments reach 95% confidence
-                  in 5–7 days. Lower traffic = longer trial; higher traffic = faster. The
-                  multi-armed bandit also begins biasing traffic toward winners after about
-                  48 hours, so the lift starts before significance lands.
+                  Depends on traffic. The allocator auto-pins a winner only after a
+                  variant clears ≥500 samples with ≥95% posterior confidence and positive
+                  uplift vs control. At ~10k weekly page views, that is typically 5–7 days.
+                  Lower traffic means longer trials. The allocator can run on cron, but
+                  you can also trigger it manually from the dashboard or
+                  <span className="mono"> manage.py allocate_bandits</span>.
                 </p>
               </details>
 
               <details className="faq-row">
                 <summary>What if I do not like a variant bandit shipped?</summary>
                 <p>
-                  Hit revert in the dashboard. The variant rolls back instantly across all
-                  visitors. We log the revert and bandit will not propose anything similar
-                  for that surface for 30 days.
+                  Open the experiment and hit <em>kill</em>. Status flips to killed,
+                  the snippet stops serving the variant on its next refresh, and the
+                  original control is what every visitor sees. There is no "30-day
+                  suppression" magic — kill it, archive it, move on.
                 </p>
               </details>
 
               <details className="faq-row">
                 <summary>Is my data shared with other customers?</summary>
                 <p>
-                  No. Page text, screenshots and session metadata stay scoped to your
-                  workspace. We do not train shared models across customers.
+                  No. Audits, variants, experiments, and exposure/conversion samples
+                  all live in your own Postgres (or our hosted Postgres scoped to your
+                  workspace). No shared training data. The only network call leaving
+                  your stack is the one to Anthropic or OpenAI with the key you set in
+                  settings.
                 </p>
               </details>
             </div>
@@ -586,14 +643,14 @@ export default function HomePage() {
         <section style={{ paddingBottom: 0 }}>
           <div className="shell-tight" style={{ textAlign: "center" }}>
             <h2 className="h-section">
-              Run the daemon. <em>Keep the data.</em>
+              Run bandit. <em>Keep the data.</em>
             </h2>
             <p className="lede" style={{ margin: "24px auto 32px" }}>
               Run a free annotated audit on the hosted plan, or clone the repo and self-host
               the whole stack. CRO · SEO · Compliance · GMC — same engine either way.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/signup" className="btn btn-lime">try the hosted plan →</Link>
+              <Link href="/signup" className="btn btn-lime">audit your site →</Link>
               <a href="https://github.com/codewithmuh/bandit" className="btn btn-ghost">clone the repo ↗</a>
             </div>
           </div>
@@ -609,8 +666,8 @@ export default function HomePage() {
                     <span className="brand-mark">B</span>
                     bandit
                   </div>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-3)", maxWidth: 320, lineHeight: 1.6 }}>
-                    The CRO daemon. A/B tests that pick themselves.
+                  <p style={{ fontFamily: "var(--mono)", fontSize: 14, color: "var(--ink-3)", maxWidth: 320, lineHeight: 1.6 }}>
+                    Open-source CRO. A/B tests that pick themselves.
                   </p>
                 </div>
                 <div className="foot-col">
@@ -642,7 +699,7 @@ export default function HomePage() {
                   <span style={{ color: "var(--ink-5)" }}>·</span>
                   <Link href="/terms" style={{ color: "var(--ink-3)" }}>terms</Link>
                   <span style={{ color: "var(--ink-5)" }}>·</span>
-                  <span style={{ color: "var(--lime)" }}>● daemon · v0.1.0</span>
+                  <span style={{ color: "var(--lime)" }}>● bandit · v0.1.0</span>
                 </span>
               </div>
             </div>

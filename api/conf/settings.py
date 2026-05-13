@@ -17,9 +17,13 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-secret-not-for-prod")
 DEBUG = env("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = [h.strip() for h in env("DJANGO_ALLOWED_HOSTS", "*").split(",") if h.strip()]
 
-# Anthropic key for the audit endpoint. Server-side only — never exposed to clients.
+# LLM provider keys + default models for audits. Server-side only — never
+# exposed to clients. Per-user keys/models on the User model take precedence;
+# these are the fallback used when a user hasn't configured their own.
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = env("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+OPENAI_API_KEY = env("OPENAI_API_KEY", "")
+OPENAI_MODEL = env("OPENAI_MODEL", "gpt-4o")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -109,6 +113,18 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 25,
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.AnonRateThrottle",
+    ),
+    # Default rates apply project-wide. Per-view scopes (e.g. "audit-run",
+    # "audit-public") override these via ScopedRateThrottle on the view.
+    "DEFAULT_THROTTLE_RATES": {
+        "user": "300/hour",
+        "anon": "60/hour",
+        "audit-run": "20/hour",      # authed: paid Claude calls — cap the budget burn
+        "audit-public": "5/hour",    # unauth: shareable preview audits from the landing page
+    },
 }
 
 SIMPLE_JWT = {

@@ -1,11 +1,21 @@
+import secrets
+
 from django.conf import settings
 from django.db import models
+
+
+def _gen_slug() -> str:
+    """Short URL-safe slug for public audit pages (~11 chars)."""
+    return secrets.token_urlsafe(8)
 
 
 class Audit(models.Model):
     """One run of the URL audit pipeline. Each audit produces N findings
     that the dashboard renders as annotation pins on the page screenshot,
-    plus an optional long-form `report` body for compliance / GMC types."""
+    plus an optional long-form `report` body for compliance / GMC types.
+
+    `user` is nullable to allow guest (landing-page) audits — those are
+    created via the public endpoint and can be claimed by a user after signup."""
 
     STATUS = [
         ("queued", "Queued"),
@@ -22,7 +32,19 @@ class Audit(models.Model):
     ]
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="audits",
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="audits",
+        null=True,
+        blank=True,
+    )
+    slug = models.CharField(
+        max_length=24, unique=True, default=_gen_slug, db_index=True,
+        help_text="Short URL-safe id used for public /audit/<slug> share pages.",
+    )
+    is_public = models.BooleanField(
+        default=False,
+        help_text="Created via the landing-page URL input; safe to render on /audit/<slug>.",
     )
     url = models.URLField()
     audit_type = models.CharField(max_length=16, choices=AUDIT_TYPES, default="cro")

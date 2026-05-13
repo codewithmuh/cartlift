@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import JsonLd from "./JsonLd";
 import RegisterSW from "./RegisterSW";
+
+// Dogfood: load Bandit's own snippet on the marketing site so the page
+// running the experiments is the one we're advertising. Gated on both env
+// vars so local dev / forks without a public site just no-op.
+const BANDIT_API = process.env.NEXT_PUBLIC_BANDIT_API_BASE || "";
+const BANDIT_TOKEN = process.env.NEXT_PUBLIC_BANDIT_TOKEN || "";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bandit.dev"),
@@ -10,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s · Bandit",
   },
   description:
-    "Bandit is the CRO daemon. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs the A/B tests. Open source.",
+    "Bandit is the open-source CRO platform. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs the A/B tests. Open source.",
   applicationName: "Bandit",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -21,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Bandit — Convert more visitors. Open-source.",
     description:
-      "Audits, page variants, and A/B tests — all in one daemon you can self-host.",
+      "Audits, page variants, and A/B tests — all in one tool you can self-host.",
     type: "website",
     siteName: "Bandit",
   },
@@ -64,6 +71,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="skip-link">skip to content</a>
         <div id="main">{children}</div>
         <RegisterSW />
+        {BANDIT_API && BANDIT_TOKEN ? (
+          <Script
+            src={`${BANDIT_API.replace(/\/$/, "")}/s/${BANDIT_TOKEN}.js`}
+            strategy="afterInteractive"
+            data-bandit-source="self-dogfood"
+          />
+        ) : null}
       </body>
     </html>
   );

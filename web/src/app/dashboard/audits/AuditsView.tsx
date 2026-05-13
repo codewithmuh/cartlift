@@ -15,18 +15,20 @@ const TABS: { id: AuditType; name: string; tag: string }[] = [
 function AuditsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialType = (searchParams.get("type") as AuditType) || "cro";
+  const urlType = (searchParams.get("type") as AuditType) || "cro";
   const runUrl = searchParams.get("run");
 
   const [active, setActive] = useState<AuditType>(
-    TABS.some((t) => t.id === initialType) ? initialType : "cro",
+    TABS.some((t) => t.id === urlType) ? urlType : "cro",
   );
   const [items, setItems] = useState<Audit[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Single-shot auto-run when arriving with ?run= from another page.
-  const autoRun = useRef<string | null>(runUrl);
+  // Dedup key for the auto-run useEffect — re-fires per (url, type) but never
+  // for the same pair twice. Prevents both double-runs on re-render and
+  // missed-runs when navigating from AuditBar with the component already mounted.
+  const lastRun = useRef<string | null>(null);
 
   const refresh = useCallback(async (t: AuditType) => {
     try {
@@ -38,28 +40,43 @@ function AuditsInner() {
     }
   }, []);
 
+  // Sync local `active` tab state when the URL ?type= changes (e.g. submitted
+  // from AuditBar while we're already on this page).
+  useEffect(() => {
+    if (TABS.some((t) => t.id === urlType) && urlType !== active) {
+      setActive(urlType);
+    }
+  }, [urlType, active]);
+
   useEffect(() => {
     refresh(active);
   }, [active, refresh]);
 
-  // Auto-run from ?run=&type=
+  // Auto-run from ?run=&type=. Watches the actual searchParam so submissions
+  // from inside the dashboard (AuditBar router.push) fire too.
   useEffect(() => {
-    const url = autoRun.current;
-    if (!url) return;
-    autoRun.current = null;
+    if (!runUrl) return;
+    const key = `${runUrl}::${urlType}`;
+    if (lastRun.current === key) return;
+    lastRun.current = key;
     (async () => {
       setBusy(true);
+      setErr(null);
       try {
-        await audits.run(url, active);
-        router.replace(`/dashboard/audits?type=${active}`);
-        await refresh(active);
-      } catch {
-        setErr("could not run that audit");
+        await audits.run(runUrl, urlType);
+        router.replace(`/dashboard/audits?type=${urlType}`);
+        await refresh(urlType);
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 429) {
+          setErr("rate limit hit. wait an hour or self-host to skip the cap.");
+        } else {
+          setErr("could not run that audit. check the url and try again.");
+        }
       } finally {
         setBusy(false);
       }
     })();
-  }, [active, refresh, router]);
+  }, [runUrl, urlType, refresh, router]);
 
   return (
     <>
@@ -88,8 +105,8 @@ function AuditsInner() {
 
       {err && <div className="form-error">{err}</div>}
       {busy && (
-        <div style={{ padding: "14px 16px", background: "var(--lime-soft)", borderLeft: "2px solid var(--lime)", marginBottom: 18, fontFamily: "var(--mono)", fontSize: 12, color: "var(--lime)" }}>
-          ● running {active.toUpperCase()} audit…
+        <div className="audit-running-banner">
+          running {active.toUpperCase()} audit…
         </div>
       )}
 
@@ -102,45 +119,35 @@ function AuditsInner() {
         </div>
       ) : (
         <div className="list-card">
-          {items.map((a) => (
-            <div key={a.id} style={{ padding: "20px 22px", borderBottom: "1px solid var(--hairline)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <Link href={`/dashboard/audits/${a.id}`} className="mono" style={{ fontSize: 14, color: "var(--ink)" }}>
-                    {a.url} <span style={{ color: "var(--ink-4)" }}>↗</span>
+          {items.map((a) => {
+            const count = a.findings.length > 0
+              ? `${a.findings.length} finding${a.findings.length === 1 ? "" : "s"}`
+              : `${(a.report?.sections?.length ?? 0) + (a.report?.areas?.length ?? 0)} sections`;
+            return (
+              <div key={a.id} className="audit-row">
+                <div className="audit-row-body">
+                  <div className="audit-row-top">
+                    <span className={`status-chip ${a.status}`}>{a.status}</span>
+                    <span className="type-chip">{a.audit_type.toUpperCase()}</span>
+                  </div>
+                  <Link href={`/dashboard/audits/${a.id}`} className="audit-url">
+                    {a.url}<span className="ext">↗</span>
                   </Link>
-                  <div className="mono fine" style={{ marginTop: 6, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                    <span style={{
-                      color: a.status === "done" ? "var(--lime)" : a.status === "failed" ? "var(--red)" : "var(--warn)",
-                    }}>
-                      ● {a.status}
-                    </span>
-                    <span style={{ color: "var(--ink-5)" }}>·</span>
-                    <span>{a.audit_type.toUpperCase()}</span>
-                    <span style={{ color: "var(--ink-5)" }}>·</span>
+                  <div className="audit-meta">
+                    <span>{count}</span>
+                    <span className="sep">·</span>
                     <span>{(a.elapsed_ms / 1000).toFixed(1)}s</span>
-                    <span style={{ color: "var(--ink-5)" }}>·</span>
-                    <span>
-                      {a.findings.length > 0
-                        ? `${a.findings.length} finding${a.findings.length === 1 ? "" : "s"}`
-                        : `${(a.report?.sections?.length ?? 0) + (a.report?.areas?.length ?? 0)} sections`}
-                    </span>
-                    <span style={{ color: "var(--ink-5)" }}>·</span>
+                    <span className="sep">·</span>
                     <span>{new Date(a.created_at).toLocaleString()}</span>
                   </div>
+                  {a.summary && <p className="audit-summary">{a.summary}</p>}
                 </div>
-                <Link href={`/dashboard/audits/${a.id}`} className="icon-btn">
+                <Link href={`/dashboard/audits/${a.id}`} className="open-report-btn">
                   open report
                 </Link>
               </div>
-
-              {a.summary && (
-                <p className="mono" style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 12, lineHeight: 1.6 }}>
-                  {a.summary}
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </>

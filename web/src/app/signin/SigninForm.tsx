@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ApiError, auth, writeTokens } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { ApiError, auth, readTokens, writeTokens } from "@/lib/api";
 
 export default function SigninForm() {
   const router = useRouter();
@@ -11,6 +11,11 @@ export default function SigninForm() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Already signed in? Skip the form.
+  useEffect(() => {
+    if (readTokens()) router.replace("/dashboard");
+  }, [router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +43,7 @@ export default function SigninForm() {
         bandit
       </Link>
 
-      <h1>sign in to <em>the daemon.</em></h1>
+      <h1>sign in to <em>bandit.</em></h1>
       <p className="subhead">welcome back. your experiments are still running.</p>
 
       {err && <div className="form-error">{err}</div>}

@@ -107,8 +107,8 @@ export default function ExperimentDetailView({ id }: { id: number }) {
       </div>
 
       {exp.hypothesis && (
-        <div style={{ padding: "16px 18px", background: "var(--bg-1)", borderLeft: "2px solid var(--ink-4)", marginBottom: 24, fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.65, borderRadius: "0 4px 4px 0" }}>
-          <strong style={{ color: "var(--lime)", display: "block", marginBottom: 6, fontSize: 11, letterSpacing: "0.06em" }}>HYPOTHESIS</strong>
+        <div style={{ padding: "16px 18px", background: "var(--bg-1)", borderLeft: "2px solid var(--ink-4)", marginBottom: 24, fontFamily: "var(--mono)", fontSize: 14, color: "var(--ink-2)", lineHeight: 1.65, borderRadius: "0 4px 4px 0" }}>
+          <strong style={{ color: "var(--lime)", display: "block", marginBottom: 6, fontSize: 13, letterSpacing: "0.06em" }}>HYPOTHESIS</strong>
           {exp.hypothesis}
         </div>
       )}
@@ -145,37 +145,37 @@ export default function ExperimentDetailView({ id }: { id: number }) {
               }} />
               <div style={{ position: "relative", display: "grid", gridTemplateColumns: "1fr auto auto auto auto", gap: 20, alignItems: "center" }}>
                 <div>
-                  <div className="mono" style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500 }}>
+                  <div className="mono" style={{ fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>
                     {v.name}
                     {v.is_control && (
-                      <span className="mono" style={{ marginLeft: 10, fontSize: 10, padding: "2px 6px", border: "1px solid var(--hairline-strong)", borderRadius: 999, color: "var(--ink-3)", letterSpacing: "0.06em" }}>
+                      <span className="mono" style={{ marginLeft: 10, fontSize: 12, padding: "2px 6px", border: "1px solid var(--hairline-strong)", borderRadius: 999, color: "var(--ink-3)", letterSpacing: "0.06em" }}>
                         CONTROL
                       </span>
                     )}
                   </div>
                   {v.body && !v.is_control && (
-                    <div className="mono" style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 6, fontStyle: "italic", lineHeight: 1.5 }}>
+                    <div className="mono" style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 6, fontStyle: "italic", lineHeight: 1.5 }}>
                       &ldquo;{v.body.length > 120 ? v.body.slice(0, 120) + "…" : v.body}&rdquo;
                     </div>
                   )}
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div className="mono fine">samples</div>
-                  <div className="mono" style={{ fontSize: 14, color: "var(--ink)" }}>{v.samples.toLocaleString()}</div>
+                  <div className="mono" style={{ fontSize: 15, color: "var(--ink)" }}>{v.samples.toLocaleString()}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div className="mono fine">conv</div>
-                  <div className="mono" style={{ fontSize: 14, color: "var(--ink)" }}>{v.conversions.toLocaleString()}</div>
+                  <div className="mono" style={{ fontSize: 15, color: "var(--ink)" }}>{v.conversions.toLocaleString()}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div className="mono fine">rate</div>
-                  <div className="mono" style={{ fontSize: 14, color: rate > 0 ? "var(--lime)" : "var(--ink-3)", fontWeight: 600 }}>
+                  <div className="mono" style={{ fontSize: 15, color: rate > 0 ? "var(--lime)" : "var(--ink-3)", fontWeight: 600 }}>
                     {rate.toFixed(2)}%
                   </div>
                 </div>
                 <div style={{ textAlign: "right", minWidth: 100 }}>
                   <div className="mono fine">traffic</div>
-                  <div className="mono" style={{ fontSize: 14, color: "var(--ink)", fontWeight: 600 }}>
+                  <div className="mono" style={{ fontSize: 15, color: "var(--ink)", fontWeight: 600 }}>
                     {(v.weight * 100).toFixed(1)}%
                   </div>
                 </div>

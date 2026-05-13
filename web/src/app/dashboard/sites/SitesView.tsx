@@ -79,7 +79,7 @@ export default function SitesView() {
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 28, alignItems: "start" }}>
       <form onSubmit={onAdd} style={{ background: "var(--bg-1)", border: "1px solid var(--hairline)", borderRadius: 6, padding: 24 }}>
         <div className="eyebrow">register</div>
-        <h2 className="mono" style={{ fontSize: 18, marginTop: 14, marginBottom: 18, color: "var(--ink)" }}>
+        <h2 className="mono" style={{ fontSize: 19, marginTop: 14, marginBottom: 18, color: "var(--ink)" }}>
           add a <span style={{ color: "var(--lime)" }}>site</span>
         </h2>
 
@@ -156,7 +156,7 @@ export default function SitesView() {
                           background: "#0e0e0e",
                           color: "#a3e6c4",
                           fontFamily: "var(--mono)",
-                          fontSize: 12,
+                          fontSize: 14,
                           borderRadius: "4px 0 0 4px",
                           margin: 0,
                           overflow: "auto",
@@ -181,7 +181,7 @@ export default function SitesView() {
                           background: "#0e0e0e",
                           color: "#d8d8d8",
                           fontFamily: "var(--mono)",
-                          fontSize: 12,
+                          fontSize: 14,
                           borderRadius: "4px 0 0 4px",
                           margin: 0,
                           overflow: "auto",

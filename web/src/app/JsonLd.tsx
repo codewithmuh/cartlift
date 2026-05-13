@@ -54,7 +54,7 @@ export default function JsonLd() {
         operatingSystem: "Web · Linux · macOS · Windows (self-hosted)",
         url: SITE,
         description:
-          "Bandit is the open-source CRO daemon. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs A/B tests via Thompson sampling.",
+          "Bandit is the open-source CRO platform. Audits any URL for conversion, SEO, compliance and Google Merchant — then drafts page variants and runs A/B tests via Thompson sampling.",
         license: "https://opensource.org/licenses/MIT",
         codeRepository: "https://github.com/codewithmuh/bandit",
         programmingLanguage: ["TypeScript", "Python"],

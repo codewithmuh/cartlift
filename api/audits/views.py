@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
 from experiments.serializers import ExperimentSerializer
 from sites.models import Site
@@ -21,6 +22,13 @@ class AuditViewSet(viewsets.ModelViewSet):
     """
     serializer_class = AuditSerializer
     http_method_names = ["get", "post", "delete", "head", "options"]
+    throttle_scope = "audit-run"  # cost-bearing scope; only applied on create + generate_variants
+
+    def get_throttles(self):
+        # Only throttle Claude-calling actions. Read-side traffic uses the global defaults.
+        if self.action in ("create", "generate_variants"):
+            return [ScopedRateThrottle()]
+        return super().get_throttles()
 
     def get_queryset(self):
         qs = Audit.objects.filter(user=self.request.user)
@@ -45,7 +53,16 @@ class AuditViewSet(viewsets.ModelViewSet):
         audit = Audit.objects.create(
             user=request.user, url=url, audit_type=audit_type, status="running",
         )
-        result = run_audit(url, audit_type=audit_type)
+        u = request.user
+        provider = (u.llm_provider or "anthropic").lower()
+        api_key = (u.openai_api_key if provider == "openai" else u.anthropic_api_key) or None
+        result = run_audit(
+            url,
+            audit_type=audit_type,
+            provider=provider,
+            api_key=api_key,
+            model=(u.llm_model or None),
+        )
         audit.status = result.get("status", "failed")
         audit.page_title = result.get("page_title", "")
         audit.summary = result.get("summary", "")

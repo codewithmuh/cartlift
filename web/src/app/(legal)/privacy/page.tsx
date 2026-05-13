@@ -42,8 +42,8 @@ export default function PrivacyPage() {
       </p>
       <p>
         The JS snippet (when installed on your sites) stores in each visitor&rsquo;s
-        <code style={{ background: "var(--bg-1)", padding: "2px 6px", borderRadius: 3, fontFamily: "var(--mono)", fontSize: 13 }}> localStorage</code>:
-        a random visitor ID like <code style={{ background: "var(--bg-1)", padding: "2px 6px", borderRadius: 3, fontFamily: "var(--mono)", fontSize: 13 }}>v_abc123…</code> and the variant
+        <code style={{ background: "var(--bg-1)", padding: "2px 6px", borderRadius: 3, fontFamily: "var(--mono)", fontSize: 15 }}> localStorage</code>:
+        a random visitor ID like <code style={{ background: "var(--bg-1)", padding: "2px 6px", borderRadius: 3, fontFamily: "var(--mono)", fontSize: 15 }}>v_abc123…</code> and the variant
         each visitor was assigned per experiment. We do not set cookies and do not
         fingerprint. The visitor ID is meaningless outside your workspace.
       </p>
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
       </h2>
       <p>
         We do not use third-party tracking cookies. We use one first-party
-        <code style={{ background: "var(--bg-1)", padding: "2px 6px", borderRadius: 3, fontFamily: "var(--mono)", fontSize: 13 }}> localStorage</code> entry on the dashboard to store your JWT.
+        <code style={{ background: "var(--bg-1)", padding: "2px 6px", borderRadius: 3, fontFamily: "var(--mono)", fontSize: 15 }}> localStorage</code> entry on the dashboard to store your JWT.
       </p>
 
       <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", marginTop: 32, marginBottom: 12 }}>
@@ -87,7 +87,7 @@ export default function PrivacyPage() {
         get a heads-up email to active accounts.
       </p>
 
-      <p style={{ marginTop: 32, paddingTop: 18, borderTop: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 13 }}>
+      <p style={{ marginTop: 32, paddingTop: 18, borderTop: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 15 }}>
         Questions? <a href="mailto:contact@codewithmuh.com" style={{ color: "var(--lime)" }}>contact@codewithmuh.com</a>
       </p>
     </>

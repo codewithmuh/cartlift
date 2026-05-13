@@ -16,6 +16,8 @@ urlpatterns = [
     path("api/sites/", include("sites.urls")),
     path("api/experiments/", include("experiments.urls")),
     path("api/audits/", include("audits.urls")),
+    # Public, unauthenticated audit preview — powers the /audit/<slug> share pages.
+    path("api/public/audits/", include("audits.public_urls")),
     # Public snippet — no JWT, CORS open. Customer sites load these from any domain.
     path("", include("snippet.urls")),
 ]

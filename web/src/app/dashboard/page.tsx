@@ -53,7 +53,7 @@ export default function DashboardHome() {
     <>
       <div className="dash-header">
         <div>
-          <h1>welcome to <em>the daemon.</em></h1>
+          <h1>welcome to <em>bandit.</em></h1>
           <p className="sub">~ {loaded
             ? `${auditCount} audits · ${siteCount} sites · ${expActive} live · ${winners} winners shipped`
             : "loading workspace…"}</p>

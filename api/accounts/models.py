@@ -26,8 +26,23 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    LLM_PROVIDER_CHOICES = (
+        ("anthropic", "Anthropic (Claude)"),
+        ("openai", "OpenAI (ChatGPT)"),
+    )
+
     email = models.EmailField(unique=True)
     company = models.CharField(max_length=120, blank=True)
+    # Per-user LLM configuration. Keys are stored as supplied; never returned
+    # via the API (only masked previews). When the chosen provider's key is
+    # blank, the audit runner falls back to the server-wide env-var keys, so
+    # the demo flow keeps working out of the box.
+    llm_provider = models.CharField(
+        max_length=16, choices=LLM_PROVIDER_CHOICES, default="anthropic",
+    )
+    llm_model = models.CharField(max_length=64, blank=True, default="")
+    anthropic_api_key = models.CharField(max_length=255, blank=True, default="")
+    openai_api_key = models.CharField(max_length=255, blank=True, default="")
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -4,7 +4,7 @@ import SignupForm from "./SignupForm";
 import SignupCanvas from "./SignupCanvas";
 
 export const metadata: Metadata = {
-  title: "Spin up the daemon — free audit",
+  title: "Get started with Bandit — free audit",
   description:
     "Create your Bandit account in 30 seconds. No card. First three audits + first experiment on us. CRO · SEO · compliance · Google Merchant.",
   alternates: { canonical: "/signup" },

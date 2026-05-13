@@ -88,7 +88,7 @@ export default function TermsPage() {
         These terms are governed by the laws of the jurisdiction where Bandit Labs is registered.
       </p>
 
-      <p style={{ marginTop: 32, paddingTop: 18, borderTop: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 13 }}>
+      <p style={{ marginTop: 32, paddingTop: 18, borderTop: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 15 }}>
         Questions? <a href="mailto:contact@codewithmuh.com" style={{ color: "var(--lime)" }}>contact@codewithmuh.com</a>
       </p>
     </>

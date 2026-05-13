@@ -33,7 +33,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
                 boxShadow: "var(--shadow-md)",
                 lineHeight: 1.7,
                 color: "var(--ink-2)",
-                fontSize: 15,
+                fontSize: 16,
               }}
             >
               {children}
