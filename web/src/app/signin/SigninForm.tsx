@@ -39,11 +39,11 @@ export default function SigninForm() {
   return (
     <form className="auth-form" onSubmit={onSubmit}>
       <Link href="/" className="auth-brand">
-        <span className="brand-mark">B</span>
-        bandit
+        <span className="brand-mark">C</span>
+        cartlift
       </Link>
 
-      <h1>sign in to <em>bandit.</em></h1>
+      <h1>sign in to <em>cartlift.</em></h1>
       <p className="subhead">welcome back. your experiments are still running.</p>
 
       {err && <div className="form-error">{err}</div>}

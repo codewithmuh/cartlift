@@ -45,8 +45,8 @@ export default function Sidebar() {
   return (
     <aside className="dash-side">
       <Link href="/" className="brand">
-        <span className="brand-mark">B</span>
-        bandit
+        <span className="brand-mark">C</span>
+        cartlift
       </Link>
 
       <div className="group">workspace</div>

@@ -189,7 +189,7 @@ export default function ExperimentDetailView({ id }: { id: number }) {
       </div>
 
       <p className="mono fine" style={{ marginTop: 18, color: "var(--ink-4)" }}>
-        ~ traffic weights re-allocated by the bandit allocator (Thompson sampling)
+        ~ traffic weights re-allocated by the cartlift allocator (Thompson sampling)
         on a fixed interval (default 30 min). force a tick with{" "}
         <code>docker compose exec api python manage.py allocate_bandits</code>.
       </p>

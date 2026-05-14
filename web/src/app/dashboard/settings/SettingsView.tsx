@@ -167,7 +167,7 @@ export default function SettingsView() {
           which <span style={{ color: "var(--lime)" }}>brain</span> powers your audits
         </h2>
         <p className="mono" style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.6, marginBottom: 20 }}>
-          ~ bandit calls anthropic or openai with your key. keys never leave the api server, never appear in any client bundle.
+          ~ cartlift calls anthropic or openai with your key. keys never leave the api server, never appear in any client bundle.
         </p>
 
         {llmErr && <div className="form-error">{llmErr}</div>}

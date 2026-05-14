@@ -10,32 +10,48 @@ import RegisterSW from "./RegisterSW";
 const BANDIT_API = process.env.NEXT_PUBLIC_BANDIT_API_BASE || "";
 const BANDIT_TOKEN = process.env.NEXT_PUBLIC_BANDIT_TOKEN || "";
 
+const SEO_TITLE =
+  "Cartlift — Open-source CRO & A/B testing for Shopify, WooCommerce, BigCommerce.";
+const SEO_DESCRIPTION =
+  "Cartlift audits your store, drafts conversion variants, and runs the A/B tests automatically. Winners ship on a Thompson-sampling allocator. MIT-licensed, self-hostable, BYO LLM key.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://cartlift.codewithmuh.com"),
   title: {
-    default: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
+    default: SEO_TITLE,
     template: "%s · Cartlift",
   },
-  description:
-    "Cartlift is the open-source CRO platform for ecommerce. Audits your store pages, drafts conversion variants, and runs the A/B tests. More buyers. Higher AOV. Repeat customers. Open source.",
+  description: SEO_DESCRIPTION,
+  keywords: [
+    "open-source CRO",
+    "A/B testing",
+    "Shopify CRO",
+    "WooCommerce A/B testing",
+    "BigCommerce optimization",
+    "ecommerce conversion rate optimization",
+    "multi-armed bandit",
+    "Thompson sampling",
+    "self-hosted CRO",
+    "store audit",
+  ],
   applicationName: "Cartlift",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.webmanifest?v=2",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Cartlift",
   },
   openGraph: {
-    title: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
-    description:
-      "Store audits, page variants, and A/B tests — all in one tool you can self-host.",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     type: "website",
     siteName: "Cartlift",
   },
   twitter: {
     card: "summary_large_image",
     creator: "@codewithmuh",
-    title: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
   },
   authors: [{ name: "codewithmuh", url: "https://www.youtube.com/@codewithmuh" }],
 };
@@ -56,8 +72,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* PWA install criteria — Next.js doesn't auto-emit these for SVG apple icons */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/icon-512.svg" />
-        <link rel="mask-icon" href="/icon-512.svg" color="#c2410c" />
+        <link rel="apple-touch-icon" href="/icon-512.svg?v=2" />
+        <link rel="mask-icon" href="/icon-512.svg?v=2" color="#c2410c" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

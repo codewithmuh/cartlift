@@ -11,8 +11,8 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       <nav className="nav">
         <div className="nav-inner">
           <Link href="/" className="brand">
-            <span className="brand-mark">B</span>
-            bandit
+            <span className="brand-mark">C</span>
+            cartlift
           </Link>
           <div className="nav-links">
             <Link href="/" className="mono" style={{ color: "var(--ink-3)" }}>← home</Link>

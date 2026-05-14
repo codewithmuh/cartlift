@@ -79,8 +79,8 @@ function SignupInner() {
   return (
     <form className="auth-form" onSubmit={onSubmit}>
       <Link href="/" className="auth-brand">
-        <span className="brand-mark">B</span>
-        bandit
+        <span className="brand-mark">C</span>
+        cartlift
       </Link>
 
       {auditHint ? (
@@ -105,7 +105,7 @@ function SignupInner() {
         </>
       ) : (
         <>
-          <h1>start with <em>bandit.</em></h1>
+          <h1>start with <em>cartlift.</em></h1>
           <p className="subhead">
             no card. first three audits + first experiment on us. takes 30 seconds.
           </p>

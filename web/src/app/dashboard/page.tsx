@@ -53,7 +53,7 @@ export default function DashboardHome() {
     <>
       <div className="dash-header">
         <div>
-          <h1>welcome to <em>bandit.</em></h1>
+          <h1>welcome to <em>cartlift.</em></h1>
           <p className="sub">~ {loaded
             ? `${auditCount} audits · ${siteCount} sites · ${expActive} live · ${winners} winners shipped`
             : "loading workspace…"}</p>
@@ -68,7 +68,7 @@ export default function DashboardHome() {
       <div className="stat-grid">
         <StatTile label="audits run" value={auditCount} loaded={loaded} hint="across all types" />
         <StatTile label="sites registered" value={siteCount} loaded={loaded} hint="with active snippet" />
-        <StatTile label="experiments live" value={expActive} loaded={loaded} accent hint="bandit is allocating" />
+        <StatTile label="experiments live" value={expActive} loaded={loaded} accent hint="allocator is re-weighting" />
         <StatTile
           label="predicted uplift"
           value={loaded ? `+${totalUplift.toFixed(1)}%` : "…"}
@@ -137,7 +137,7 @@ export default function DashboardHome() {
             <Link href="/dashboard/experiments" className="action-card">
               <span className="action-num">03</span>
               <h3>review experiments</h3>
-              <p>approve, kill, or let the bandit decide.</p>
+              <p>approve, kill, or let the allocator decide.</p>
               <span className="action-arrow">→</span>
             </Link>
           </div>

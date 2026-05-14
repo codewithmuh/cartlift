@@ -20,12 +20,23 @@ function fmt(n: number): string {
   return String(n);
 }
 
+// Hide the star count until it crosses a credibility threshold. A "★ 1 on
+// github" badge on an open-source pitch actively hurts trust — below this
+// floor we surface the factual MIT differentiator instead, which doesn't
+// depend on traction.
+const STAR_DISPLAY_THRESHOLD = 25;
+
 export default async function GithubStars({ repo = "codewithmuh/cartlift" }: { repo?: string }) {
   const stars = await getStars(repo);
+  const showCount = stars !== null && stars >= STAR_DISPLAY_THRESHOLD;
   return (
-    <a href={`https://github.com/${repo}`} className="badge" aria-label={`Cartlift on GitHub${stars ? ` — ${stars} stars` : ""}`}>
+    <a
+      href={`https://github.com/${repo}`}
+      className="badge"
+      aria-label={showCount ? `Cartlift on GitHub — ${stars} stars` : "Cartlift on GitHub — MIT licensed, self-hostable"}
+    >
       <span className="key">★</span>
-      {stars !== null ? fmt(stars) : "github"} on github ↗
+      {showCount ? `${fmt(stars!)} on github ↗` : "MIT · self-hostable ↗"}
     </a>
   );
 }

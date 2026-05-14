@@ -165,8 +165,12 @@ export default function AuditDetailView({ id }: { id: number }) {
   const canGenerate = a.audit_type === "cro" || a.audit_type === "seo";
   const safeUrl = a.url.replace(/[^a-z0-9]/gi, "-").slice(0, 60);
 
+  // data-audit-type re-binds the --lime token family inside this subtree
+  // (see globals.css :where([data-audit-type="seo"])). SEO reports get a blue
+  // accent — orange on an SEO report reads like a warning, blue reads like
+  // analysis. CRO / compliance / GMC stay on the brand orange.
   return (
-    <>
+    <div data-audit-type={a.audit_type}>
       <div className="dash-header">
         <div>
           <h1>{TYPE_LABEL[a.audit_type] ?? a.audit_type} <em>audit.</em></h1>
@@ -186,7 +190,7 @@ export default function AuditDetailView({ id }: { id: number }) {
           <button
             className="icon-btn"
             onClick={() =>
-              downloadFile(`bandit-${a.audit_type}-${safeUrl}.md`, buildMarkdown(a), "text/markdown")
+              downloadFile(`cartlift-${a.audit_type}-${safeUrl}.md`, buildMarkdown(a), "text/markdown")
             }
           >
             ⤓ download .md
@@ -194,7 +198,7 @@ export default function AuditDetailView({ id }: { id: number }) {
           <button
             className="icon-btn"
             onClick={() =>
-              downloadFile(`bandit-${a.audit_type}-${safeUrl}.json`, JSON.stringify(a, null, 2), "application/json")
+              downloadFile(`cartlift-${a.audit_type}-${safeUrl}.json`, JSON.stringify(a, null, 2), "application/json")
             }
           >
             ⤓ download .json
@@ -237,8 +241,8 @@ export default function AuditDetailView({ id }: { id: number }) {
           {/* ---- Print-only cover page ---- */}
           <section className="print-cover seo-print-cover">
             <div className="cover-brand">
-              <span className="cover-mark">B</span>
-              <span className="cover-name">bandit</span>
+              <span className="cover-mark">C</span>
+              <span className="cover-name">cartlift</span>
             </div>
             <div className="seo-cover-eyebrow">SEO Audit Report</div>
             <h1 className="cover-title">{a.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</h1>
@@ -274,7 +278,7 @@ export default function AuditDetailView({ id }: { id: number }) {
             <div className="cover-about">
               <h4>About this report</h4>
               <p>
-                This is a multi-page SEO audit produced by Bandit. We crawled up to {a.report?.pages?.length ?? 0} pages of
+                This is a multi-page SEO audit produced by Cartlift. We crawled up to {a.report?.pages?.length ?? 0} pages of
                 your site, captured every per-page SEO signal (titles, metas, H1s, schemas, canonicals,
                 response headers, content density), and aggregated them into the diagnostics + scores below.
               </p>
@@ -341,14 +345,189 @@ export default function AuditDetailView({ id }: { id: number }) {
         </>
       )}
 
-      {/* Long-form view (Compliance + GMC) — KeyCommerce-style report */}
-      {isLongForm && (
-        <article className="report-doc">
+      {/* Long-form view (Compliance + GMC). Two renderings of the same data:
+          - .report-summary  → on-screen scannable cards (no-print)
+          - <article>        → dense doc-style body for the PDF cover + body (no-screen) */}
+      {isLongForm && (() => {
+        const checks = a.report?.checks ?? [];
+        const totalChecks = checks.length;
+        const passingChecks = checks.filter((c) => c.ok).length;
+        const failingChecks = totalChecks - passingChecks;
+        const passRate = totalChecks ? passingChecks / totalChecks : 1;
+        // Sort: failing first (most actionable), then passing
+        const orderedChecks = [...checks].sort((a, b) =>
+          a.ok === b.ok ? 0 : a.ok ? 1 : -1,
+        );
+        const verdict = failingChecks === 0
+          ? { tone: "ok" as const, label: "compliant", sub: "every check passed — keep monitoring as policies tighten." }
+          : passRate >= 0.85
+            ? { tone: "warn" as const, label: "minor gaps", sub: `${failingChecks} of ${totalChecks} checks failing — close them this week.` }
+            : { tone: "bad" as const, label: "at risk", sub: `${failingChecks} of ${totalChecks} checks failing — eligibility likely to be flagged.` };
+        const riskCount = a.report?.areas?.length ?? 0;
+        const pagesCount = a.report?.crawled?.length ?? 0;
+
+        return (
+          <>
+            {/* ============ SCREEN — polished summary ============ */}
+            <section className="report-summary no-print">
+              <div className="report-verdict-row">
+                <div className={`report-verdict report-verdict--${verdict.tone}`}>
+                  <div className="report-verdict-eyebrow">eligibility verdict</div>
+                  <div className="report-verdict-label">● {verdict.label}</div>
+                  <div className="report-verdict-sub">{verdict.sub}</div>
+                </div>
+                <div className="report-stat-grid">
+                  {[
+                    ["checks passing", `${passingChecks}/${totalChecks}`],
+                    ["risks identified", String(riskCount)],
+                    ["pages crawled", String(pagesCount)],
+                    ["elapsed", `${(a.elapsed_ms / 1000).toFixed(1)}s`],
+                  ].map(([k, v]) => (
+                    <div key={k} className="report-stat">
+                      <div className="report-stat-label">{k}</div>
+                      <div className="report-stat-value">{v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {a.audit_type === "gmc" ? (
+                <div className="report-scope-note">
+                  <strong>Scope.</strong> Cartlift does not have access to your GMC account, product feed, or
+                  diagnostics tab — every signal below was observed by crawling your public website (the same
+                  pages a Google reviewer reads).
+                </div>
+              ) : null}
+
+              {a.audit_type === "gmc" && a.report?.ai_analysis === false ? (
+                <div className="report-llm-note">
+                  <strong>Deeper LLM analysis was not run.</strong> The auto-detected checklist is fully populated;
+                  cross-page contradiction analysis requires an Anthropic API key. Add one in <a href="/dashboard/settings">settings</a> and re-run.
+                </div>
+              ) : null}
+
+              {pagesCount > 0 ? (
+                <div className="report-block">
+                  <div className="report-block-eyebrow">pages crawled · {pagesCount}</div>
+                  <div className="report-chips">
+                    {a.report!.crawled!.map((p) => (
+                      <a
+                        key={p.url}
+                        href={p.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="report-chip"
+                        title={p.url}
+                      >
+                        <span className="report-chip-tag">{(p.labels ?? [p.label]).join(" + ")}</span>
+                        <span className="report-chip-path">{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {a.report?.areas?.length ? (
+                <div className="report-block">
+                  <div className="report-block-eyebrow">
+                    {a.audit_type === "gmc" ? "gmc eligibility risks" : "outcomes"} · {a.report.areas.length}
+                  </div>
+                  <div className="report-risks-grid">
+                    {a.report.areas.map((s, i) => (
+                      <div key={i} className="report-risk-card">
+                        <div className="report-risk-head">
+                          <span className="report-risk-index">{String(i + 1).padStart(2, "0")}</span>
+                          <span className="report-risk-pill">risk</span>
+                          <h4 className="report-risk-title">{s.title}</h4>
+                        </div>
+                        <p className="report-risk-finding">{s.finding}</p>
+                        {s.recommendations?.length ? (
+                          <ul className="report-risk-recs">
+                            {s.recommendations.map((r, j) => (
+                              <li key={j}>
+                                <span className="report-risk-rec-marker" aria-hidden>→</span>
+                                <span>{r}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {totalChecks > 0 ? (
+                <div className="report-block">
+                  <div className="report-block-eyebrow">
+                    auto-detected checklist · {failingChecks > 0 ? `${failingChecks} failing of ${totalChecks}` : `${totalChecks}/${totalChecks} passing`}
+                  </div>
+                  <p className="report-block-help">
+                    Deterministic. Computed by reading the crawled HTML — no LLM involved, so every result is verifiable.
+                  </p>
+                  <div className="report-checks-grid">
+                    {orderedChecks.map((c, i) => (
+                      <div
+                        key={i}
+                        className={`report-check ${c.ok ? "report-check--ok" : "report-check--bad"}`}
+                      >
+                        <span className="report-check-dot" aria-hidden>{c.ok ? "●" : "○"}</span>
+                        <div className="report-check-body">
+                          <div className="report-check-item">{c.item}</div>
+                          {c.note && <div className="report-check-note">{c.note}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {a.report?.sections?.length ? (
+                <div className="report-block">
+                  <div className="report-block-eyebrow">detailed findings · {a.report.sections.length}</div>
+                  <div className="report-risks-grid">
+                    {a.report.sections.map((s, i) => (
+                      <div key={i} className="report-risk-card">
+                        <div className="report-risk-head">
+                          <span className="report-risk-index">{String(i + 1).padStart(2, "0")}</span>
+                          <h4 className="report-risk-title">{s.title}</h4>
+                        </div>
+                        <p className="report-risk-finding">{s.finding}</p>
+                        {s.recommendations?.length ? (
+                          <ul className="report-risk-recs">
+                            {s.recommendations.map((r, j) => (
+                              <li key={j}>
+                                <span className="report-risk-rec-marker" aria-hidden>→</span>
+                                <span>{r}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {a.report?.conclusion?.length ? (
+                <div className="report-block">
+                  <div className="report-block-eyebrow">do this week</div>
+                  <ol className="report-conclusion">
+                    {a.report.conclusion.map((c, i) => (
+                      <li key={i}>{c}</li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
+            </section>
+
+            {/* ============ PRINT — dense doc body (existing renderer) ============ */}
+        <article className="report-doc no-screen">
           {/* ---- Print-only cover page ---- */}
           <section className="print-cover">
             <div className="cover-brand">
-              <span className="cover-mark">B</span>
-              <span className="cover-name">bandit</span>
+              <span className="cover-mark">C</span>
+              <span className="cover-name">cartlift</span>
             </div>
             <h1 className="cover-title">
               {a.audit_type === "gmc"
@@ -535,7 +714,9 @@ export default function AuditDetailView({ id }: { id: number }) {
             </section>
           ) : null}
         </article>
-      )}
-    </>
+          </>
+        );
+      })()}
+    </div>
   );
 }

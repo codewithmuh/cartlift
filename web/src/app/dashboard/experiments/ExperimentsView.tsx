@@ -32,7 +32,7 @@ export default function ExperimentsView() {
       <div className="empty-card">
         <h3>no experiments yet</h3>
         <p style={{ marginBottom: 18 }}>
-          ~ register a site, then bandit will draft your first variants within minutes.
+          ~ register a site, then cartlift will draft your first variants within minutes.
         </p>
         <Link href="/dashboard/sites" className="btn btn-lime">register a site →</Link>
       </div>

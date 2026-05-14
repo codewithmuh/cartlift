@@ -20,12 +20,12 @@ export default function SignupCanvas() {
     return (
       <div className="auth-canvas">
         <div className="sample">
-          <span className="ln c">$ bandit init --site yourcompany.com</span>
+          <span className="ln c">$ cartlift init --site yourcompany.com</span>
           <span className="ln c">~ creating workspace…</span>
           <span className="ln k">→ workspace ready · token: bnd_xxxx</span>
           <span className="ln c"></span>
-          <span className="ln c">$ bandit watch</span>
-          <span className="ln c">~ bandit online. monitoring 1 site.</span>
+          <span className="ln c">$ cartlift watch</span>
+          <span className="ln c">~ cartlift online. monitoring 1 site.</span>
           <span className="ln c">~ first variant draft expected in &lt; 4 min.</span>
           <span className="ln c"></span>
           <span className="ln k">● ready to ship.</span>

@@ -3,7 +3,7 @@
  *
  * Two graphs:
  *   - Organization (about codewithmuh as the publisher)
- *   - SoftwareApplication (about Bandit as the product)
+ *   - SoftwareApplication (about Cartlift as the product)
  *
  * Rendered into <head> via Next.js's <script> in a Server Component.
  * Use Google's Rich Results Test to validate: https://search.google.com/test/rich-results

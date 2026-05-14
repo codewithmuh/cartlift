@@ -56,7 +56,7 @@ export default function SitesView() {
   }
 
   async function onRemove(id: number) {
-    if (!confirm("remove this site? bandit will stop watching immediately.")) return;
+    if (!confirm("remove this site? cartlift will stop watching immediately.")) return;
     try {
       await sites.remove(id);
       await refresh();

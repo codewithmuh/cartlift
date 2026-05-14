@@ -69,9 +69,9 @@ export default function HomePage() {
                 </h1>
 
                 <p className="lede hero-lede">
-                  Paste your store URL — Cartlift audits it, drafts conversion variants,
-                  and runs the A/B tests <strong>for you</strong>. Winners ship
-                  automatically. More buyers, higher AOV, repeat customers — no agency.
+                  Paste your store URL. Get an annotated audit in <strong>~30 seconds</strong>.
+                  Cartlift drafts the variants, runs the A/B tests, and ships the winners
+                  automatically — no agency, no dashboards to babysit.
                 </p>
 
                 <URLAuditInput />
@@ -610,6 +610,32 @@ export default function HomePage() {
             </h2>
 
             <div className="faq">
+              {/* The top two are the objections that block signup — keep them
+                  open by default so their answers are visible without a click. */}
+              <details className="faq-row" open>
+                <summary>Will this break my store or my checkout?</summary>
+                <p>
+                  The snippet wraps every DOM swap in a try/catch — if anything throws, the
+                  original page renders untouched. Every experiment has approve / pause /
+                  kill controls in the dashboard. The whole snippet is one template in
+                  <span className="mono"> api/snippet/views.py</span> — read it before you
+                  paste it. It never touches your checkout flow unless you point a variant
+                  at it.
+                </p>
+              </details>
+
+              <details className="faq-row" open>
+                <summary>How long until I see lift on AOV or conversion?</summary>
+                <p>
+                  Depends on traffic. The allocator auto-pins a winner only after a variant
+                  clears ≥500 samples with ≥95% posterior confidence and positive uplift
+                  vs control. At ~10k weekly sessions, that is typically 5–7 days. Lower
+                  traffic stores see longer trials. The allocator runs on a fixed interval
+                  (default every 30 min); you can also trigger it from
+                  <span className="mono"> manage.py allocate_bandits</span>.
+                </p>
+              </details>
+
               <details className="faq-row">
                 <summary>How does cartlift actually change my store?</summary>
                 <p>
@@ -623,18 +649,6 @@ export default function HomePage() {
               </details>
 
               <details className="faq-row">
-                <summary>Will this break my store or my checkout?</summary>
-                <p>
-                  The snippet wraps every DOM swap in a try/catch — if anything throws, the
-                  original page renders untouched. Every experiment has approve / pause /
-                  kill controls in the dashboard. The whole snippet is one template in
-                  <span className="mono"> api/snippet/views.py</span> — read it before you
-                  paste it. It never touches your checkout flow unless you point a variant
-                  at it.
-                </p>
-              </details>
-
-              <details className="faq-row">
                 <summary>How do you decide what to test on my store?</summary>
                 <p>
                   You paste a URL — a PDP, a collection, your homepage, your cart. Cartlift
@@ -644,18 +658,6 @@ export default function HomePage() {
                   lift, and you click <em>generate variants</em> to turn the findings you
                   like into draft experiments. No telemetry, no session recordings — just
                   the page.
-                </p>
-              </details>
-
-              <details className="faq-row">
-                <summary>How long until I see lift on AOV or conversion?</summary>
-                <p>
-                  Depends on traffic. The allocator auto-pins a winner only after a variant
-                  clears ≥500 samples with ≥95% posterior confidence and positive uplift
-                  vs control. At ~10k weekly sessions, that is typically 5–7 days. Lower
-                  traffic stores see longer trials. The allocator can run on cron, but you
-                  can also trigger it manually from the dashboard or
-                  <span className="mono"> manage.py allocate_bandits</span>.
                 </p>
               </details>
 
@@ -772,7 +774,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="foot-bottom">
-                <span>© 2026 Cartlift Labs · made in a terminal</span>
+                <span>© {new Date().getFullYear()} Cartlift Labs · made in a terminal</span>
                 <span style={{ display: "flex", gap: 14, alignItems: "center" }}>
                   <Link href="/privacy" style={{ color: "var(--ink-3)" }}>privacy</Link>
                   <span style={{ color: "var(--ink-5)" }}>·</span>

@@ -6,7 +6,7 @@ export default function SitesPage() {
       <div className="dash-header">
         <div>
           <h1>your <em>sites.</em></h1>
-          <p className="sub">~ register a domain. install the snippet. bandit takes it from there.</p>
+          <p className="sub">~ register a domain. install the snippet. cartlift takes it from there.</p>
         </div>
       </div>
       <SitesView />
