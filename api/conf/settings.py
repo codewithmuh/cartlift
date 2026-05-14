@@ -71,29 +71,26 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
-# Database — prefer DATABASE_URL when present (Vercel/Neon/Railway/Render
-# style), fall back to discrete POSTGRES_* env vars for local docker-compose.
-# Neon also exposes POSTGRES_DATABASE (note: not POSTGRES_DB) via Vercel.
-def _db_from_url(url: str) -> dict:
-    from urllib.parse import urlparse, unquote
-    u = urlparse(url)
-    return {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": (u.path or "/").lstrip("/") or "postgres",
-        "USER": unquote(u.username or ""),
-        "PASSWORD": unquote(u.password or ""),
-        "HOST": u.hostname or "",
-        "PORT": str(u.port or 5432),
-    }
-
+# Database — prefer DATABASE_URL (Vercel/Neon/Railway/Render), fall back to
+# discrete POSTGRES_* env vars for local docker-compose. dj-database-url
+# parses the connection string and dispatches to the right backend.
+import dj_database_url  # noqa: E402
 
 _database_url = env("DATABASE_URL") or env("POSTGRES_URL")
 if _database_url:
-    DATABASES = {"default": _db_from_url(_database_url)}
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,  # Neon + most managed Postgres require SSL
+        ),
+    }
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
+            # Neon (via Vercel) sets POSTGRES_DATABASE; docker-compose sets POSTGRES_DB.
             "NAME": env("POSTGRES_DB") or env("POSTGRES_DATABASE") or "cartlift",
             "USER": env("POSTGRES_USER", "cartlift"),
             "PASSWORD": env("POSTGRES_PASSWORD", "cartlift_dev"),
@@ -102,10 +99,10 @@ else:
         }
     }
 
-# Neon (and any non-localhost managed Postgres) requires SSL.
-_db_host = DATABASES["default"]["HOST"]
-if _db_host and _db_host not in {"localhost", "127.0.0.1", "db"}:
-    DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = "require"
+# Add Vercel's auto-assigned hostname so the deployment passes ALLOWED_HOSTS.
+if env("VERCEL_URL"):
+    ALLOWED_HOSTS.append(env("VERCEL_URL"))
+    ALLOWED_HOSTS.append(".vercel.app")  # any preview URL
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -166,6 +163,9 @@ CORS_ALLOWED_ORIGINS = [
         "http://localhost:3050,http://127.0.0.1:3050",
     ).split(",") if o.strip()
 ]
+# Match every Vercel preview URL (cartlift-<hash>-<team>.vercel.app) without
+# having to enumerate them. Production origin still goes through CORS_ALLOWED_ORIGINS.
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://cartlift-.*\.vercel\.app$"]
 CORS_ALLOW_CREDENTIALS = True
 # Restrict corsheaders to /api/* — snippet routes (/s/*) set their own CORS:* headers
 # so they can be loaded from any customer domain.

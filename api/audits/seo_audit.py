@@ -42,7 +42,12 @@ from django.conf import settings
 _UA = "CartliftAudit/0.1 (+https://cartlift.codewithmuh.com/audit)"
 _HEADERS = {"User-Agent": _UA, "Accept": "text/html,application/xhtml+xml"}
 
-_MAX_PAGES = 12
+# Vercel serverless caps function execution at 60s (Pro plan). A 12-page
+# crawl + two Claude calls regularly lands at 65-70s on real ecommerce
+# domains, which trips the timeout. Six pages keeps the worst case under
+# the limit (homepage + 5 policy pages — enough for cross-page checks
+# and duplicate-title detection without spending the budget on PDPs).
+_MAX_PAGES = 6
 _PER_PAGE_TIMEOUT = 6.0
 _HOMEPAGE_TIMEOUT = 10.0
 _THIN_WORD_THRESHOLD = 250
