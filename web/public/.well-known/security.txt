@@ -1,6 +1,6 @@
 Contact: mailto:contact@codewithmuh.com
 Expires: 2027-01-01T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://bandit.dev/.well-known/security.txt
-Policy: https://github.com/codewithmuh/bandit/security/policy
-Acknowledgments: https://github.com/codewithmuh/bandit
+Canonical: https://cartlift.codewithmuh.com/.well-known/security.txt
+Policy: https://github.com/codewithmuh/cartlift/security/policy
+Acknowledgments: https://github.com/codewithmuh/cartlift

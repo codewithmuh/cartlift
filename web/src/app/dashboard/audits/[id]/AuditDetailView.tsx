@@ -370,7 +370,7 @@ export default function AuditDetailView({ id }: { id: number }) {
               </p>
               <p>
                 {a.audit_type === "gmc"
-                  ? "Bandit does NOT have access to your Google Merchant Center account, product feed, or diagnostics tab. We do not invent suspension messages or affected-item counts. Every finding below is observable from the pages we crawled."
+                  ? "Cartlift does NOT have access to your Google Merchant Center account, product feed, or diagnostics tab. We do not invent suspension messages or affected-item counts. Every finding below is observable from the pages we crawled."
                   : "Under each section we provide what we found and concrete recommendations to improve."}
               </p>
               <p>
@@ -429,7 +429,7 @@ export default function AuditDetailView({ id }: { id: number }) {
 
           {a.audit_type === "gmc" ? (
             <div className="gmc-scope-note no-print">
-              <strong>Scope of this audit.</strong> Bandit does not have access
+              <strong>Scope of this audit.</strong> Cartlift does not have access
               to your Google Merchant Center account, product feed, or
               diagnostics tab. Every risk below is observed by reading your
               public website — the same pages a Google policy reviewer reads

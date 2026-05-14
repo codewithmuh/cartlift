@@ -20,7 +20,7 @@ function fmt(n: number): string {
   return String(n);
 }
 
-export default async function GithubStars({ repo = "codewithmuh/bandit" }: { repo?: string }) {
+export default async function GithubStars({ repo = "codewithmuh/cartlift" }: { repo?: string }) {
   const stars = await getStars(repo);
   return (
     <a href={`https://github.com/${repo}`} className="badge" aria-label={`Cartlift on GitHub${stars ? ` — ${stars} stars` : ""}`}>

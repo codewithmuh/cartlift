@@ -9,7 +9,7 @@
  * Use Google's Rich Results Test to validate: https://search.google.com/test/rich-results
  */
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://bandit.dev";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://cartlift.codewithmuh.com";
 
 export default function JsonLd() {
   const graph = {
@@ -34,7 +34,7 @@ export default function JsonLd() {
           ],
         },
         sameAs: [
-          "https://github.com/codewithmuh/bandit",
+          "https://github.com/codewithmuh/cartlift",
           "https://www.youtube.com/@codewithmuh",
           "https://x.com/codewithmuh",
         ],
@@ -56,7 +56,7 @@ export default function JsonLd() {
         description:
           "Cartlift is the open-source CRO platform for ecommerce. Audits store pages for conversion, SEO, trust and Google Merchant — then drafts page variants and runs A/B tests via Thompson sampling. Lift AOV, conversion, and repeat-customer rate.",
         license: "https://opensource.org/licenses/MIT",
-        codeRepository: "https://github.com/codewithmuh/bandit",
+        codeRepository: "https://github.com/codewithmuh/cartlift",
         programmingLanguage: ["TypeScript", "Python"],
         softwareVersion: "0.1.0",
         offers: {

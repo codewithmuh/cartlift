@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy",
   description:
-    "How Bandit handles personal data, audit URLs, and the JS snippet's visitor identifiers. Open-source so you can verify every word.",
+    "How Cartlift handles personal data, audit URLs, and the JS snippet's visitor identifiers. Open-source so you can verify every word.",
   alternates: { canonical: "/privacy" },
 };
 

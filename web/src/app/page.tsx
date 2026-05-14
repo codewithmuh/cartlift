@@ -38,7 +38,7 @@ export default function HomePage() {
           </Link>
           <div className="nav-links">
             <a
-              href="https://github.com/codewithmuh/bandit"
+              href="https://github.com/codewithmuh/cartlift"
               className="btn btn-ghost btn-gh"
               target="_blank"
               rel="noopener noreferrer"
@@ -548,7 +548,7 @@ export default function HomePage() {
 
             <div className="os-proof os-proof-center">
               <span className="lbl">100% open source</span>
-              <GithubStars repo="codewithmuh/bandit" />
+              <GithubStars repo="codewithmuh/cartlift" />
               <span className="badge lime">MIT</span>
               <span className="badge"><span className="key">self-hostable ·</span> docker compose up</span>
               <span className="badge"><span className="key">stack ·</span> next.js · django · postgres</span>
@@ -730,7 +730,7 @@ export default function HomePage() {
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/signup" className="btn btn-lime">audit your store →</Link>
-              <a href="https://github.com/codewithmuh/bandit" className="btn btn-ghost">clone the repo ↗</a>
+              <a href="https://github.com/codewithmuh/cartlift" className="btn btn-ghost">clone the repo ↗</a>
             </div>
           </div>
         </section>
@@ -758,10 +758,10 @@ export default function HomePage() {
                 </div>
                 <div className="foot-col">
                   <h4>open source</h4>
-                  <a href="https://github.com/codewithmuh/bandit">github ↗</a>
-                  <a href="https://github.com/codewithmuh/bandit/issues">issues ↗</a>
-                  <a href="https://github.com/codewithmuh/bandit#contributing">contribute ↗</a>
-                  <a href="https://github.com/codewithmuh/bandit/blob/main/LICENSE">MIT license ↗</a>
+                  <a href="https://github.com/codewithmuh/cartlift">github ↗</a>
+                  <a href="https://github.com/codewithmuh/cartlift/issues">issues ↗</a>
+                  <a href="https://github.com/codewithmuh/cartlift#contributing">contribute ↗</a>
+                  <a href="https://github.com/codewithmuh/cartlift/blob/main/LICENSE">MIT license ↗</a>
                 </div>
                 <div className="foot-col">
                   <h4>built by codewithmuh</h4>

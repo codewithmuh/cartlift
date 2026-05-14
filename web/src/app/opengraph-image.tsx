@@ -139,7 +139,7 @@ export default async function og() {
               gap: 10,
             }}
           >
-            ● github.com/codewithmuh/bandit
+            ● github.com/codewithmuh/cartlift
           </div>
         </div>
       </div>

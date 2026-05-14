@@ -28,7 +28,7 @@ from .seo_audit import run_seo_audit
 
 # ---- shared fetch -----------------------------------------------------------
 
-_UA = "BanditAudit/0.1 (+https://bandit.dev/audit)"
+_UA = "CartliftAudit/0.1 (+https://cartlift.codewithmuh.com/audit)"
 _HEADERS = {"User-Agent": _UA, "Accept": "text/html,application/xhtml+xml"}
 
 
@@ -847,7 +847,7 @@ _PROMPT_GMC = (
     "'register' in the cart/checkout text); "
     "(e) accepted payment methods must be visibly disclosed on HOMEPAGE footer "
     "AND PRODUCT pages. "
-    "Bandit ALREADY runs deterministic regex checks against the crawled "
+    "Cartlift ALREADY runs deterministic regex checks against the crawled "
     "HTML (HTTPS, presence of policy pages, payment-brand icons, guest "
     "checkout vs forced sign-in, return window stated, contact-email "
     "consistency, social-media presence, etc.). Do NOT duplicate those — "

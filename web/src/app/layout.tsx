@@ -11,7 +11,7 @@ const BANDIT_API = process.env.NEXT_PUBLIC_BANDIT_API_BASE || "";
 const BANDIT_TOKEN = process.env.NEXT_PUBLIC_BANDIT_TOKEN || "";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bandit.dev"),
+  metadataBase: new URL("https://cartlift.codewithmuh.com"),
   title: {
     default: "Cartlift — Lift every cart. Open-source ecommerce CRO.",
     template: "%s · Cartlift",

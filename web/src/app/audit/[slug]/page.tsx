@@ -147,7 +147,7 @@ export default async function PublicAuditPage({
         <section className="audit-pub-footer">
           <div className="audit-pub-share">
             <span className="mono">share this audit</span>
-            <code className="mono">cartlift.dev/audit/{b.group_slug}</code>
+            <code className="mono">cartlift.codewithmuh.com/audit/{b.group_slug}</code>
           </div>
           <p className="lede" style={{ marginTop: 24 }}>
             Cartlift is the open-source CRO platform for ecommerce. Audits any

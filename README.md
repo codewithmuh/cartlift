@@ -86,7 +86,7 @@ Paste a store URL into the hero on the landing page → ~30 seconds later you ha
 |---|---|
 | **web** (Next.js) | http://localhost:3050 |
 | **api** (Django + Gunicorn) | http://localhost:8050 |
-| **django admin** | http://localhost:8050/admin · `admin@cartlift.dev` / `cartlift_admin_dev` |
+| **django admin** | http://localhost:8050/admin · `admin@cartlift.codewithmuh.com` / `cartlift_admin_dev` |
 | **postgres** | `localhost:5450` (user `cartlift`, db `cartlift`, pw `cartlift_dev`) |
 
 ---

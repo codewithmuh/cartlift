@@ -2892,7 +2892,7 @@ section + section { border-top: 1px solid var(--hairline); }
       color: #6a6a6a;
     }
     @bottom-left {
-      content: "bandit · bandit.dev";
+      content: "cartlift · cartlift.codewithmuh.com";
       font-family: var(--mono);
       font-size: 9pt;
       color: #6a6a6a;

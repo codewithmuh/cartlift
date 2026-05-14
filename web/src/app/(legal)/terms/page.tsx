@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of service",
   description:
-    "The terms governing use of Bandit's hosted plan. The open-source code itself is governed by the MIT license.",
+    "The terms governing use of Cartlift's hosted plan. The open-source code itself is governed by the MIT license.",
   alternates: { canonical: "/terms" },
 };
 
@@ -21,7 +21,7 @@ export default function TermsPage() {
         1. The agreement
       </h2>
       <p>
-        By creating an account on Bandit&rsquo;s hosted plan, you agree to these terms. If you
+        By creating an account on Cartlift&rsquo;s hosted plan, you agree to these terms. If you
         don&rsquo;t agree, don&rsquo;t use the hosted plan — clone the open-source repo and self-host instead.
       </p>
 
@@ -37,7 +37,7 @@ export default function TermsPage() {
       <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", marginTop: 32, marginBottom: 12 }}>
         3. Acceptable use
       </h2>
-      <p>You may not use Bandit to:</p>
+      <p>You may not use Cartlift to:</p>
       <ul style={{ paddingLeft: 22, marginBottom: 18 }}>
         <li>Audit or run experiments on sites you don&rsquo;t own or have written permission to test.</li>
         <li>Crawl URLs at a rate that would be considered denial of service.</li>
@@ -68,7 +68,7 @@ export default function TermsPage() {
         6. Liability
       </h2>
       <p>
-        Bandit is provided &ldquo;as is&rdquo;. We don&rsquo;t guarantee a specific lift, uptime, or audit
+        Cartlift is provided &ldquo;as is&rdquo;. We don&rsquo;t guarantee a specific lift, uptime, or audit
         accuracy. Our maximum liability for any claim is the amount you paid us in the 12
         months prior to the claim. The MIT license disclaimers apply to the self-hosted version.
       </p>
@@ -85,7 +85,7 @@ export default function TermsPage() {
         8. Governing law
       </h2>
       <p>
-        These terms are governed by the laws of the jurisdiction where Bandit Labs is registered.
+        These terms are governed by the laws of the jurisdiction where Cartlift Labs is registered.
       </p>
 
       <p style={{ marginTop: 32, paddingTop: 18, borderTop: "1px solid var(--hairline)", color: "var(--ink-3)", fontSize: 15 }}>

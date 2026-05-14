@@ -39,7 +39,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from django.conf import settings
 
-_UA = "BanditAudit/0.1 (+https://bandit.dev/audit)"
+_UA = "CartliftAudit/0.1 (+https://cartlift.codewithmuh.com/audit)"
 _HEADERS = {"User-Agent": _UA, "Accept": "text/html,application/xhtml+xml"}
 
 _MAX_PAGES = 12

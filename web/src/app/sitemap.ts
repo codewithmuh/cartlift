@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://bandit.dev";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://cartlift.codewithmuh.com";
 const NOW = new Date();
 
 export default function sitemap(): MetadataRoute.Sitemap {
