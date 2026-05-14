@@ -71,16 +71,41 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
-DATABASES = {
-    "default": {
+# Database — prefer DATABASE_URL when present (Vercel/Neon/Railway/Render
+# style), fall back to discrete POSTGRES_* env vars for local docker-compose.
+# Neon also exposes POSTGRES_DATABASE (note: not POSTGRES_DB) via Vercel.
+def _db_from_url(url: str) -> dict:
+    from urllib.parse import urlparse, unquote
+    u = urlparse(url)
+    return {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", "bandit"),
-        "USER": env("POSTGRES_USER", "bandit"),
-        "PASSWORD": env("POSTGRES_PASSWORD", "bandit_dev"),
-        "HOST": env("POSTGRES_HOST", "db"),
-        "PORT": env("POSTGRES_PORT", "5432"),
+        "NAME": (u.path or "/").lstrip("/") or "postgres",
+        "USER": unquote(u.username or ""),
+        "PASSWORD": unquote(u.password or ""),
+        "HOST": u.hostname or "",
+        "PORT": str(u.port or 5432),
     }
-}
+
+
+_database_url = env("DATABASE_URL") or env("POSTGRES_URL")
+if _database_url:
+    DATABASES = {"default": _db_from_url(_database_url)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("POSTGRES_DB") or env("POSTGRES_DATABASE") or "cartlift",
+            "USER": env("POSTGRES_USER", "cartlift"),
+            "PASSWORD": env("POSTGRES_PASSWORD", "cartlift_dev"),
+            "HOST": env("POSTGRES_HOST", "db"),
+            "PORT": env("POSTGRES_PORT", "5432"),
+        }
+    }
+
+# Neon (and any non-localhost managed Postgres) requires SSL.
+_db_host = DATABASES["default"]["HOST"]
+if _db_host and _db_host not in {"localhost", "127.0.0.1", "db"}:
+    DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = "require"
 
 AUTH_USER_MODEL = "accounts.User"
 
