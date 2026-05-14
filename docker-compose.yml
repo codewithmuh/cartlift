@@ -43,6 +43,28 @@ services:
     volumes:
       - ./api:/app
 
+  scheduler:
+    build:
+      context: ./api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-secret-not-for-prod}
+      POSTGRES_DB: ${POSTGRES_DB:-cartlift}
+      POSTGRES_USER: ${POSTGRES_USER:-cartlift}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cartlift_dev}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      # Override at deploy time. 1800s = 30 min matches the README cadence.
+      BANDIT_ALLOCATOR_INTERVAL: ${BANDIT_ALLOCATOR_INTERVAL:-1800}
+    command: ["python", "manage.py", "run_allocator_loop"]
+    volumes:
+      - ./api:/app
+
 volumes:
   # Explicit name so the volume survives folder rename / compose-project changes.
   pgdata:

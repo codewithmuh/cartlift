@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Experiment, Variant
-from .serializers import ExperimentSerializer, VariantSerializer
+from .serializers import ExperimentSerializer, VariantSerializer, WeightSnapshotSerializer
 
 
 class ExperimentViewSet(viewsets.ModelViewSet):
@@ -45,6 +45,24 @@ class ExperimentViewSet(viewsets.ModelViewSet):
         exp.status = "paused"
         exp.save(update_fields=["status"])
         return Response(ExperimentSerializer(exp).data)
+
+    @action(detail=True, methods=["get"], url_path="weight_history")
+    def weight_history(self, request, pk=None):
+        """Frozen per-tick snapshots produced by the allocator. Powers the
+        dashboard chart that shows how Thompson sampling moved traffic over time.
+        """
+        exp = self.get_object()
+        try:
+            limit = min(int(request.query_params.get("limit", "200")), 1000)
+        except (TypeError, ValueError):
+            limit = 200
+        # Newest-last so the chart x-axis flows left→right chronologically
+        snaps = list(exp.weight_snapshots.order_by("-created_at")[:limit])
+        snaps.reverse()
+        return Response({
+            "experiment_id": exp.id,
+            "snapshots": WeightSnapshotSerializer(snaps, many=True).data,
+        })
 
 
 class VariantViewSet(viewsets.ReadOnlyModelViewSet):

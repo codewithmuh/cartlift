@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ApiError, experiments, type Experiment } from "@/lib/api";
+import WeightHistoryChart from "./WeightHistoryChart";
 
 const STATUS_COLORS: Record<string, string> = {
   trial: "var(--warn)",
@@ -128,6 +129,8 @@ export default function ExperimentDetailView({ id }: { id: number }) {
         ))}
       </div>
 
+      <WeightHistoryChart experimentId={id} />
+
       <h2 className="mono fine" style={{ margin: "0 0 14px", color: "var(--ink-3)" }}>variants</h2>
 
       <div className="list-card">
@@ -186,8 +189,9 @@ export default function ExperimentDetailView({ id }: { id: number }) {
       </div>
 
       <p className="mono fine" style={{ marginTop: 18, color: "var(--ink-4)" }}>
-        ~ traffic weights re-allocated by the bandit allocator (Thompson sampling).
-        run <code>python manage.py allocate_bandits</code> to update now.
+        ~ traffic weights re-allocated by the bandit allocator (Thompson sampling)
+        on a fixed interval (default 30 min). force a tick with{" "}
+        <code>docker compose exec api python manage.py allocate_bandits</code>.
       </p>
     </>
   );

@@ -21,7 +21,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from experiments.models import Experiment, Variant
+from experiments.models import Experiment, Variant, WeightSnapshot
 
 
 def _beta_sample(alpha: float, beta: float) -> float:
@@ -67,30 +67,57 @@ def _allocate(experiment: Experiment, draws: int = 5000) -> dict[str, Any]:
     )
     confidence = new_weights[leader.id]  # share of posterior wins == probability leader is best
 
+    # Auto-ship: leader is non-control, has ≥500 samples, ≥95% posterior confidence
+    shipping = (
+        not leader.is_control
+        and leader.samples >= 500
+        and confidence >= 0.95
+        and uplift_pct > 0
+    )
+
     with transaction.atomic():
         for v, *_ in arms:
-            Variant.objects.filter(id=v.id).update(weight=new_weights[v.id])
+            final_weight = (
+                (1.0 if v.id == leader.id else 0.0) if shipping else new_weights[v.id]
+            )
+            Variant.objects.filter(id=v.id).update(weight=final_weight)
 
         exp_updates: dict[str, Any] = {
             "uplift_pct": round(uplift_pct, 2),
             "confidence": round(confidence, 4),
         }
-        # Auto-ship: leader is non-control, has ≥500 samples, ≥95% posterior confidence
-        if (
-            not leader.is_control
-            and leader.samples >= 500
-            and confidence >= 0.95
-            and uplift_pct > 0
-        ):
+        if shipping:
             exp_updates["status"] = "winner"
             exp_updates["decided_at"] = timezone.now()
-            # Pin: 100% to the winner, 0 to losers
-            for v, *_ in arms:
-                Variant.objects.filter(id=v.id).update(
-                    weight=1.0 if v.id == leader.id else 0.0,
-                )
 
         Experiment.objects.filter(id=experiment.id).update(**exp_updates)
+
+        # Frozen snapshot of the post-allocation state — powers the dashboard
+        # weight-history chart. Captures the variant name inline so the chart
+        # keeps rendering even if a variant is later deleted.
+        snapshot_arms = []
+        for v, *_ in arms:
+            w = (
+                (1.0 if v.id == leader.id else 0.0) if shipping else new_weights[v.id]
+            )
+            rate = (v.conversions / v.samples) if v.samples else 0.0
+            snapshot_arms.append({
+                "variant_id": v.id,
+                "name": v.name,
+                "is_control": v.is_control,
+                "weight": round(w, 4),
+                "samples": v.samples,
+                "conversions": v.conversions,
+                "rate": round(rate, 4),
+            })
+        WeightSnapshot.objects.create(
+            experiment=experiment,
+            confidence=round(confidence, 4),
+            uplift_pct=round(uplift_pct, 2),
+            leader_variant_id=leader.id,
+            shipped=shipping,
+            arms=snapshot_arms,
+        )
 
     return {
         "experiment": experiment.id,
@@ -99,7 +126,7 @@ def _allocate(experiment: Experiment, draws: int = 5000) -> dict[str, Any]:
         "leader_name": leader.name,
         "confidence": round(confidence, 4),
         "uplift_pct": round(uplift_pct, 2),
-        "shipped": exp_updates.get("status") == "winner",
+        "shipped": shipping,
     }
 
 

@@ -373,6 +373,31 @@ export type Experiment = {
   variants: Variant[];
 };
 
+export type WeightSnapshotArm = {
+  variant_id: number;
+  name: string;
+  is_control: boolean;
+  weight: number;
+  samples: number;
+  conversions: number;
+  rate: number;
+};
+
+export type WeightSnapshot = {
+  id: number;
+  confidence: number;
+  uplift_pct: number;
+  leader_variant_id: number | null;
+  shipped: boolean;
+  arms: WeightSnapshotArm[];
+  created_at: string;
+};
+
+export type WeightHistory = {
+  experiment_id: number;
+  snapshots: WeightSnapshot[];
+};
+
 export const experiments = {
   list: () => api<{ results: Experiment[] } | Experiment[]>("/api/experiments/"),
   get: (id: number) => api<Experiment>(`/api/experiments/${id}/`),
@@ -382,4 +407,6 @@ export const experiments = {
     api<Experiment>(`/api/experiments/${id}/kill/`, { method: "POST" }),
   pause: (id: number) =>
     api<Experiment>(`/api/experiments/${id}/pause/`, { method: "POST" }),
+  weightHistory: (id: number, limit = 200) =>
+    api<WeightHistory>(`/api/experiments/${id}/weight_history/?limit=${limit}`),
 };

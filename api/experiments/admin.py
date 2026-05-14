@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Experiment, Sample, Variant
+from .models import Experiment, Sample, Variant, WeightSnapshot
 
 
 class VariantInline(admin.TabularInline):
@@ -22,3 +22,11 @@ class SampleAdmin(admin.ModelAdmin):
     list_display = ("variant", "event", "visitor", "created_at")
     list_filter = ("event",)
     search_fields = ("visitor",)
+
+
+@admin.register(WeightSnapshot)
+class WeightSnapshotAdmin(admin.ModelAdmin):
+    list_display = ("experiment", "confidence", "uplift_pct", "shipped", "created_at")
+    list_filter = ("shipped",)
+    readonly_fields = ("experiment", "confidence", "uplift_pct",
+                       "leader_variant_id", "shipped", "arms", "created_at")

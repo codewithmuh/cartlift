@@ -85,3 +85,31 @@ class Sample(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [models.Index(fields=["variant", "event", "created_at"])]
+
+
+class WeightSnapshot(models.Model):
+    """One row per allocator tick — frozen view of how Thompson sampling
+    re-weighted the experiment. Powers the dashboard weight-history chart and
+    makes the auto-pin decision auditable after the fact.
+
+    `arms` is a list of {variant_id, name, is_control, weight, samples,
+    conversions, rate} dicts captured at the moment of the snapshot — so the
+    chart keeps rendering correctly even if a variant is later deleted.
+    """
+
+    experiment = models.ForeignKey(
+        Experiment, on_delete=models.CASCADE, related_name="weight_snapshots",
+    )
+    confidence = models.FloatField(default=0.0)
+    uplift_pct = models.FloatField(default=0.0)
+    leader_variant_id = models.IntegerField(null=True, blank=True)
+    shipped = models.BooleanField(default=False)
+    arms = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["experiment", "created_at"])]
+
+    def __str__(self) -> str:
+        return f"snapshot exp={self.experiment_id} @ {self.created_at:%Y-%m-%d %H:%M}"

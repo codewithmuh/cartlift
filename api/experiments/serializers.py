@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Experiment, Variant
+from .models import Experiment, Variant, WeightSnapshot
 
 
 class VariantSerializer(serializers.ModelSerializer):
@@ -34,3 +34,11 @@ class ExperimentSerializer(serializers.ModelSerializer):
         if value.user_id != request.user.id:
             raise serializers.ValidationError("Site does not belong to this account.")
         return value
+
+
+class WeightSnapshotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeightSnapshot
+        fields = ("id", "confidence", "uplift_pct", "leader_variant_id",
+                  "shipped", "arms", "created_at")
+        read_only_fields = fields
