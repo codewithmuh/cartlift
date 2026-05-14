@@ -18,7 +18,7 @@
   "crons": [
     {
       "path": "/api/admin/run-allocator",
-      "schedule": "*/30 * * * *"
+      "schedule": "17 3 * * *"
     }
   ]
 }
