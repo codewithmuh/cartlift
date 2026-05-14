@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, audits, type Audit, type AuditType } from "@/lib/api";
 
+// SEO leads — most users start with an SEO audit and it's the richest output.
 const TABS: { id: AuditType; name: string; tag: string }[] = [
-  { id: "cro", name: "conversion", tag: "CRO" },
   { id: "seo", name: "seo", tag: "SEO" },
+  { id: "cro", name: "conversion", tag: "CRO" },
   { id: "compliance", name: "compliance", tag: "TRUST" },
   { id: "gmc", name: "google merchant", tag: "GMC" },
 ];
@@ -15,11 +16,11 @@ const TABS: { id: AuditType; name: string; tag: string }[] = [
 function AuditsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlType = (searchParams.get("type") as AuditType) || "cro";
+  const urlType = (searchParams.get("type") as AuditType) || "seo";
   const runUrl = searchParams.get("run");
 
   const [active, setActive] = useState<AuditType>(
-    TABS.some((t) => t.id === urlType) ? urlType : "cro",
+    TABS.some((t) => t.id === urlType) ? urlType : "seo",
   );
   const [items, setItems] = useState<Audit[] | null>(null);
   const [busy, setBusy] = useState(false);

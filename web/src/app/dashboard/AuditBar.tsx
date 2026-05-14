@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const TYPES = [
-  { id: "cro", name: "cro" },
   { id: "seo", name: "seo" },
+  { id: "cro", name: "cro" },
   { id: "compliance", name: "compliance" },
   { id: "gmc", name: "gmc" },
 ];
@@ -13,7 +13,7 @@ const TYPES = [
 export default function AuditBar() {
   const router = useRouter();
   const [url, setUrl] = useState("");
-  const [type, setType] = useState("cro");
+  const [type, setType] = useState("seo");
   const [busy, setBusy] = useState(false);
 
   function onSubmit(e: React.FormEvent) {

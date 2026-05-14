@@ -238,8 +238,10 @@ export default function AuditDetailView({ id }: { id: number }) {
       {/* Rich SEO report (multi-page crawl) */}
       {isRichSeo && (
         <article className="seo-report-doc">
-          {/* ---- Print-only cover page ---- */}
-          <section className="print-cover seo-print-cover">
+          {/* ---- Print-only cover page. Wrapped in `no-screen` so it only
+                renders in the printed PDF; the dashboard shows the cleaner
+                SeoReport hero below. ---- */}
+          <section className="print-cover seo-print-cover no-screen">
             <div className="cover-brand">
               <span className="cover-mark">C</span>
               <span className="cover-name">cartlift</span>
