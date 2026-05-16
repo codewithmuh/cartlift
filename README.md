@@ -13,6 +13,7 @@
 Built in public by [@codewithmuh](https://www.youtube.com/@codewithmuh) as a buildable open-source alternative to closed CRO platforms (VWO, Optimizely, Convert.com). Designed for ecommerce — Shopify, WooCommerce, BigCommerce, headless. MIT licensed — clone it, fork it, sell it.
 
 ---
+<img width="1697" height="927" alt="ChatGPT Image May 16, 2026, 08_11_18 AM" src="https://github.com/user-attachments/assets/5d895d0c-0d4e-4d86-a1b5-3fe211e94860" />
 
 ## What it does
 
