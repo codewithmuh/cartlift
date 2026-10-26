@@ -1,4 +1,23 @@
-# cartlift
+# cartlift: Open-Source Ecommerce Growth Daemon & CRO Bandit
+
+<div align="center">
+
+[![GitHub Release](https://img.shields.io/github/v/release/codewithmuh/cartlift?color=blue&logo=github)](https://github.com/codewithmuh/cartlift/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Stars](https://img.shields.io/github/stars/codewithmuh/cartlift?style=flat&color=gold)](https://github.com/codewithmuh/cartlift/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/codewithmuh/cartlift?style=flat&color=teal)](https://github.com/codewithmuh/cartlift/network/members)
+[![Next.js 15](https://img.shields.io/badge/Frontend-Next.js_15_|_React_19-000000?logo=next.js)](https://nextjs.org/)
+[![Django 5.1](https://img.shields.io/badge/Backend-Django_5.1_|_DRF-092E20?logo=django)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_16-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Anthropic Claude](https://img.shields.io/badge/AI-Claude_3.5_Sonnet-D97706?logo=anthropic)](https://www.anthropic.com/)
+[![Docker](https://img.shields.io/badge/Container-Docker_Compose-2496ED?logo=docker)](https://www.docker.com/)
+[![YouTube: @codewithmuh](https://img.shields.io/badge/YouTube-codewithmuh-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/@codewithmuh)
+
+**Audits any ecommerce store for Conversion, SEO, Trust & Google Merchant Center compliance, drafts AI page variants, and allocates traffic via Thompson sampling multi-armed bandits.**
+
+</div>
+
+---
 
 > **Lift every cart. Open-source.**
 >
@@ -32,6 +51,37 @@ After the audit, the daemon can:
 4. **Auto-ship** — when the leader has ≥500 samples + ≥95% posterior confidence, the experiment is pinned 100% to the winner and marked `winner`
 
 The whole loop is in this repo. Nothing is hand-waved.
+
+### Growth Engine Architecture
+
+```mermaid
+flowchart TD
+    Store["Ecommerce Store (Shopify / WooCommerce / Custom)"]
+    Audit["Cartlift Audit Engine (POST /api/public/audits/)"]
+    
+    subgraph Analysis["Parallel Claude AI Audits"]
+        CRO["Conversion Rate (CRO)"]
+        SEO["SEO & Structured Data"]
+        Trust["Trust & Policies"]
+        GMC["Google Merchant Center"]
+    end
+    
+    subgraph Execution["Optimization Loop"]
+        Drafter["Variant Drafter (Claude AI)"]
+        Snippet["Edge JS Snippet (<script async ...>)"]
+        Bandit["Thompson Sampling Bandit Daemon"]
+        AutoShip["Auto-Ship Winner (≥95% Confidence)"]
+    end
+
+    Store -->|Store URL| Audit
+    Audit --> CRO & SEO & Trust & GMC
+    Analysis --> Drafter
+    Drafter --> Snippet
+    Snippet -->|Expose & Convert Events| Bandit
+    Bandit -->|Dynamically Re-weights Traffic| Snippet
+    Bandit -->|Leader Reaches Threshold| AutoShip
+    AutoShip -->|100% Traffic Allocation| Store
+```
 
 ---
 
